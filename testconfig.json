@@ -1,0 +1,62 @@
+{
+"display" :
+    {
+    "width" : 320 ,
+    "height" : 240
+    } ,
+"areas" :
+    [
+    {
+    "specs" :
+        {
+        "id" : "screen" ,
+        "width" : 320 ,
+        "height" : 240 ,
+        "border" : null ,
+        "areas" :
+            [
+            {
+            "specs" :
+                {
+                "id" : "UpperLeft" ,
+                "xaxis" : 0 ,
+                "yaxis" : 0 ,
+                "width" : 160 ,
+                "height" : 80
+                }
+            } ,
+            {
+            "specs" :
+                {
+                "id" : "UpperRight" ,
+                "xaxis" : 160 ,
+                "yaxis" : 0 ,
+                "width" : 160 ,
+                "height" : 80
+                }
+            } ,
+            {
+            "specs" :
+                {
+                "id" : "LowerLeft" ,
+                "xaxis" : 0 ,
+                "yaxis" : 80 ,
+                "width" : 160 ,
+                "height" : 160
+                }
+            } ,
+            {
+            "specs" :
+                {
+                "id" : "LowerRight" ,
+                "xaxis" : 160 ,
+                "yaxis" : 80 ,
+                "width" : 160 ,
+                "height" : 160
+                }
+            }
+            ]
+        }
+    }
+    ]
+}
