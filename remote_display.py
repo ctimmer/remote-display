@@ -4,41 +4,71 @@ from time import sleep
 from ili9341 import Display, color565
 from machine import Pin, SPI  # type: ignore
 
+from xglcd_font import XglcdFont
+
+import ujson
+
 class ILI9341Display :
-    def __init__ (self ,
-                  width = 320 ,
-                  height = 240 ,
-                  rotation = 270 ,
-                  spi_id = 0 ,
-                  sck = 18 ,
-                  mosi = 19 ,
-                  miso = 16 ,
-                  baudrate = 10000000 ,
-                  polarity = 1 ,
-                  phase = 1 ,
-                  bits = 8 ,
-                  firstbit = SPI.MSB ,
-                  dc = 15 ,
-                  cs = 17 ,
-                  rst = 14
-                  ) :
-        spi = SPI(spi_id,
-                  baudrate = baudrate ,
-                  #baudrate=40000000 ,
-                  polarity = polarity ,
-                  phase = phase ,
-                  bits = bits ,
-                  firstbit = firstbit,
-                  sck = Pin(sck),
-                  mosi = Pin(mosi),
-                  miso = Pin(miso))
-        self.display = Display(spi,
-                                width = width ,
-                                height = height ,
-                                rotation = rotation ,
-                                dc = Pin(dc),
-                                cs = Pin(cs),
-                                rst = Pin(rst))
+    def __init__ (self , **kwargs) :
+        #print (kwargs)
+        spi_params = {
+                        "id" : "id" ,
+                        "spi_id" : "id" ,
+                        "baudrate" : "baudrate" ,
+                        "spi_baudrate" : "baudrate" ,
+                        "polarity" : "polarity" ,
+                        "spi_polarity" : "polarity" ,
+                        "phase" : "phase" ,
+                        "spi_phase" : "phase" ,
+                        "bits" : "bits" ,
+                        "spi_bits" : "bits" ,
+                        #"firstbit" : "firstbit" ,
+                        #"spi_firstbit" : "firstbit" ,
+                        "sck" : "sck" ,
+                        "spi_sck" : "sck" ,
+                        "mosi" : "mosi" ,
+                        "spi_mosi" : "mosi" ,
+                        "miso" : "miso" ,
+                        "spi_miso" : "miso"
+                        }
+        named_args = {
+                    "id" : 0
+                    }
+        for id in kwargs :
+            if id in spi_params :
+                arg_id = spi_params [id]
+                if arg_id in ["sck", "mosi", "miso"] :
+                    named_args [arg_id] = Pin (kwargs [id])
+                else :
+                    named_args [arg_id] = kwargs [id]
+        #print ("spi:", named_args)
+        spi = SPI (**named_args)
+        #
+        display_params = {
+                            "width" : "width" ,
+                            "display_width" : "width" ,
+                            "height" : "height" ,
+                            "display_height" : "height" ,
+                            "rotation" : "rotation" ,
+                            "display_rotation" : "rotation" ,
+                            "dc" : "dc" ,
+                            "display_dc" : "dc" ,
+                            "cs" : "cs" ,
+                            "display_cs" : "cs" ,
+                            "rst" : "rst" ,
+                            "display_rst" : "rst"
+                            }
+        named_args = {}
+        for id in kwargs :
+            if id in display_params :
+                #print (id)
+                arg_id = display_params [id]
+                if arg_id in ["dc", "cs", "rst"] :
+                    named_args [arg_id] = Pin (kwargs [id])
+                else :
+                    named_args [arg_id] = kwargs [id]
+        #print ("display:", named_args)
+        self.display = Display(spi, **named_args)
         self.color_names = {
                         "BLACK" : self.convert_rgb (0, 0, 0) ,
                         "WHITE" : self.convert_rgb (255, 255, 255) ,
@@ -57,22 +87,80 @@ class ILI9341Display :
                         "TEAL" : self.convert_rgb (0, 128, 128) ,
                         "NAVY" : self.convert_rgb (0, 0, 128)
                         }
-        self.font_default = None
-        self.color_default = self.color_names ["WHITE"]
+        #self.font_default = XglcdFont('fonts/Unispace12x24.c', 12, 24)
+        self.font_default = XglcdFont('fonts/Unispace12x24.c', 12, 24)
+        self.color_default = self.color_names ["YELLOW"]
         self.background_default = self.color_names ["BLUE"]
+        self.screen_clear_params = {
+                                    "color" : "color" ,
+                                    "hlines" : "hlines"
+                                    }
+        self.pixel_params = {
+                            "x" : "x" ,
+                            "xpos" : "x" ,
+                            "y" : "y" ,
+                            "ypos" : "y" ,
+                            "color" : "color"
+                            }
+        self.text_params = {
+                            "x" : "x" ,
+                            "xpos" : "x" ,
+                            "y" : "y" ,
+                            "ypos" : "y" ,
+                            "text" : "text" ,
+                            "font" : "font" ,
+                            "color" : "color" ,
+                            "background" : "background" ,
+                            "spacing" : "spacing"
+                            }
+        self.line_params = {
+                            "x1" : "x1" ,
+                            "x1pos" : "x1" ,
+                            "y1" : "y1" ,
+                            "y1pos" : "y1" ,
+                            "x2" : "x2" ,
+                            "x2pos" : "x2" ,
+                            "y2" : "y2" ,
+                            "y2pos" : "y2" ,
+                            "color" : "color"
+                            }
+        self.rectangle_params = {
+                                "x" : "x" ,
+                                "xpos" : "x" ,
+                                "y" : "y" ,
+                                "ypos" : "y" ,
+                                "h" : "h" ,
+                                "vlen" : "h" ,
+                                "height" : "h" ,
+                                "w" : "w" ,
+                                "hlen" : "w" ,
+                                "width" : "w" ,
+                                "color" : "color"
+                                }
+        # draw_polygon(self, sides, x0, y0, r, color, rotate=0):
+        self.polygon_params = {
+                                "sides" : "sides" ,
+                                "x0" : "x0" ,
+                                "xcenter" : "x0" ,
+                                "y0" : "y0" ,
+                                "ycenter" : "y0" ,
+                                "r" : "r" ,
+                                "radius" : "r" ,
+                                "color" : "color" ,
+                                "rotate" : "rotate"
+                                }
     '''
     def clear(self, color=0, hlines=8):
     '''
     def screen_clear (self, **kwargs) :
-        color = self.background_default
-        hlines = 8
-        if "color" in kwargs :
-            color = kwargs ['color']
-        if "hlines" in kwargs :
-            hlines = kwargs ["hlines"]
-        self.display.clear (color = color ,
-                            hlines = hlines
-                            )
+        named_args = {
+                    "color" : self.background_default
+                    }
+        for id in kwargs :
+            if id in self.screen_clear_params :
+                named_args [self.screen_clear_params [id]] = kwargs [id]
+        #print ("screen_clear:", named_args)
+        self.display.clear (**named_args)
     def screen_off (self) :
         """Turn display off."""
         self.display.write_cmd (self.display.DISPLAY_OFF)
@@ -84,16 +172,32 @@ class ILI9341Display :
     def draw_pixel(self, x, y, color):
     '''
     def pixel (self, **kwargs) :
-        x = 0
-        y = 0
-        color = self.color_default
-        if "x" in kwargs :
-            x = kwargs ['x']
-        if "y" in kwargs :
-            y = kwargs ['y']
-        if "color" in kwargs :
-            color = kwargs ['color']
-        self.display.draw_pixel (x, y, color)
+        named_args = {
+                    "x" : 0 ,
+                    "y" : 0 ,
+                    "color" : self.color_default
+                    }
+        for id in kwargs :
+            if id in self.text_params :
+                named_args [self.text_params [id]] = kwargs [id]
+        self.display.draw_pixel (**named_args)
+
+    '''
+        def draw_polygon(self, sides, x0, y0, r, color, rotate=0):
+    '''
+    def polygon (self, **kwargs) :
+        #print ("text kwargs:", kwargs)
+        named_args = {
+                    "sides" : 6 ,
+                    "x0" : 5 ,
+                    "y0" : 5 ,
+                    "r" : 4 ,
+                    "color" : self.color_default
+                    }
+        for id in kwargs :
+            if id in self.polygon_params :
+                named_args [self.polygon_params [id]] = kwargs [id]
+        self.display.draw_polygon (**named_args)
 
     '''
     def draw_text(self, x, y, text, font, color,  background=0,
@@ -102,108 +206,112 @@ class ILI9341Display :
                      rotate=0):
     '''
     def text (self, **kwargs) :
-        x = 0
-        y = 0
-        text = "NotSet"
-        font = self.font_default
-        color = self.color_default
-        background = self.background_default
-        landscape = False
-        spacing = 1
+        #print ("text kwargs:", kwargs)
+        named_args = {
+                    "x" : 0 ,
+                    "y" : 0 ,
+                    "text" : "NotSet" ,
+                    #"font" : self.font_default ,
+                    "color" : self.color_default ,
+                    "background" : self.background_default
+                    }
+        if self.font_default is not None :
+            named_args ["font"] = self.font_default
         for id in kwargs :
-            if id == "x" :
-                x = kwargs['x']
-            elif id == "y" :
-                y = kwargs['y']
-            elif id == "text" :
-                text = kwargs['text']
-            elif id == "color" :
-                color = kwargs['color']
-            elif id == "background" :
-                background = kwargs ['background']
-        if font is not None :
-            self.display.draw_text (x ,
-                              y ,
-                              text ,
-                              font ,
-                              color ,
-                              background = background ,
-                              landscape = landscape ,
-                              spacing = spacing)
+            if id in self.text_params :
+                named_args [self.text_params [id]] = kwargs [id]
+        #print ("text named_args:", named_args)
+        if "font" in named_args :
+            named_args ["spacing"] = 1
+            self.display.draw_text (**named_args)
         else :
-            self.display.draw_text8x8 (x ,
-                                        y ,
-                                        text, 
-                                        color ,
-                                        background = background)
-                     #rotate=0):
+            self.display.draw_text8x8 (**named_args)
     '''
     def draw_line(self, x1, y1, x2, y2, color):
     '''
     def line (self, **kwargs) :
-        x1 = 0
-        y1 = 0
-        x2 = 0
-        y2 = 0
-        color = self.color_default
+        #print ("text kwargs:", kwargs)
+        named_args = {
+                    "x1" : 0 ,
+                    "y1" : 0 ,
+                    "x2" : 0 ,
+                    "y2" : 0 ,
+                    "color" : self.color_default
+                    }
         for id in kwargs :
-            if id == "x1" :
-                x1 = kwargs ["x1"]
-            elif id == "y1" :
-                y1 = kwargs ["y1"]
-            elif id == "x2" :
-                x2 = kwargs ["x2"]
-            elif id == "y2" :
-                y2 = kwargs ["y2"]
-            elif id == "color" :
-                color = kwargs['color']
-        self.display.draw_line (x1, y1, x2, y2, color)
+            if id in self.line_params :
+                named_args [self.line_params [id]] = kwargs [id]
+        #print ("text named_args:", named_args)
+        self.display.draw_line (**named_args)
     '''
     def draw_rectangle(self, x, y, w, h, color):
     '''
     def rectangle (self, **kwargs) :
-        x = 0
-        y = 0
-        width = 0
-        height = 0
-        color = self.color_default
+        #print ("text kwargs:", kwargs)
+        named_args = {
+                    "x" : 0 ,
+                    "y" : 0 ,
+                    "h" : 0 ,
+                    "w" : 0 ,
+                    "color" : self.color_default
+                    }
         for id in kwargs :
-            if id == "x" :
-                x = kwargs['x']
-            elif id == "y" :
-                y = kwargs['y']
-            elif id == "width" :
-                width = kwargs['width']
-            elif id == "height" :
-                height = kwargs['height']
-            elif id == "color" :
-                color = kwargs['color']
-        self.display.draw_rectangle(x, y, width, height, color)
+            if id in self.rectangle_params :
+                named_args [self.rectangle_params [id]] = kwargs [id]
+        self.display.draw_rectangle(**named_args)
     #------
     def convert_rgb (self, red, green, blue) :    # _16bit from below
         return ((red & 0x1f) << 11) | ((green & 0x3f) << 5) | (blue & 0x1f)
-    '''
     def convert_rgb_8bit (self, red, green, blue) :
         return ((red & 0x07) << 5) | ((green & 0x07) << 2) | (blue & 0x03)
     def convert_rgb_16bit (self, red, green, blue) :
         return ((red & 0x1f) << 11) | ((green & 0x3f) << 5) | (blue & 0x1f)
     def convert_rgb_24bit (self, red, green, blue) :
         return (red << 15) | (green << 7) | blue
-    '''
     
 #-------------------------------------------------------------------------------
-# TestDisplay
+# TraceDisplay
 #-------------------------------------------------------------------------------
-class TestDisplay :
-    def __init__ (self) :
-        pass
+class TraceDisplay (ILI9341Display) :
+    def __init__ (self, **kwargs) :
+        print ("TraceDisplay running")
+        print ("__init__:", kwargs)
+        super ().__init__ (**kwargs)
     def pixel (self, **kwargs) :
-        print (kwargs)
+        print ("pixel", kwargs)
+        super ().pixel (**kwargs)
+    def line (self, **kwargs) :
+        print ("line:", kwargs)
+        super ().line (**kwargs)
+    def rectangle (self, **kwargs) :
+        print ("rectangle:", kwargs)
+        super ().rectangle (**kwargs)
 
-#class RemoteDisplay (TestDisplay) :
-class RemoteDisplay (ILI9341Display) :
-    def __init__ (self) :
-        super ().__init__ ()
+class RemoteDisplay (TraceDisplay) :
+#class RemoteDisplay (ILI9341Display) :
+    def __init__ (self, **kwargs) :
+        super ().__init__ (**kwargs)
+
+        with open('testconfig.json', 'r') as config_file:
+            #data = config_file.read ()
+            #print (data)
+            self.config = ujson.loads(config_file.read())
+            #print(self.config)
+        self.areas = {}
+        self.configure (None, self.config)
+        #for id in self.areas :
+            #print (id)
+    def configure (self, parent, area) :
+        #print ("area:", area)
+        if parent is None :
+            area["wpos"] = 0
+            area["hpos"] = 0
+        if "id" in area :
+            #print (area['id'])
+            self.areas [area["id"]] = area
+        if "areas" in area :
+            for child in area["areas"] :
+                self.configure (area, child)
     #def pixel (self, **kwargs) :
     #    arguments = {"id" : "value"}
     #    super().d_pixel (**arguments)
@@ -213,9 +321,27 @@ class RemoteDisplay (ILI9341Display) :
 ################################################################################
 #
 
-disp = RemoteDisplay ()
-
-disp.pixel (val=0, test=True)
+disp = RemoteDisplay (
+                    config_file = "tesconfig.json" ,
+                    #---- SPI parameters
+                    spi_id = 0 ,
+                    sck = 18 ,
+                    mosi = 19 ,
+                    miso = 16 ,
+                    baudrate = 10000000 ,
+                    polarity = 1 ,
+                    phase = 1 ,
+                    bits = 8 ,
+                    #firstbit = SPI.MSB ,
+                    #---- Display parameters
+                    display_width = 320 ,
+                    height = 240 ,
+                    rotation = 270 ,
+                    dc = 15 ,
+                    cs = 17 ,
+                    rst = 14
+                    )
+                    #
 
 disp.screen_clear ()
 disp.text (x = 20, y = 112, text="Hello, World!")
@@ -224,6 +350,9 @@ for x in range (20,40) :
 
 disp.line (x1 = 30, y1 = 30, x2 = 90, y2 = 90, color = disp.color_names ["WHITE"])
 
-disp.rectangle (x = 50, y = 150, width = 100, height = 20, color = disp.color_names ["TEAL"])
-print (disp.convert_rgb (0,0,255))
+disp.rectangle (x = 50, y = 150, width = 100, height = 20, color = disp.color_names ["CYAN"])
+
+disp.polygon (sides = 6, x0 = 50, y0 = 200, r = 10)
+
+#print (disp.convert_rgb (0,0,255))
 

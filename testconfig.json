@@ -1,62 +1,41 @@
 {
-"display" :
-    {
-    "width" : 320 ,
-    "height" : 240
-    } ,
+"id" : "screen" ,
+"wpos" : 0 ,
+"wlen" : 320 ,
+"hpos" : 0 ,
+"hlen" : 240 ,
 "areas" :
     [
     {
-    "specs" :
+    "wpos" : 0 ,
+    "wlen" : 320 ,
+    "hpos" : 0 ,
+    "hlen" : 240 ,
+    "padding" : 2 ,
+    "border" : [255, 0, 0]
+    "areas" :
+        [
         {
-        "id" : "screen" ,
-        "width" : 320 ,
-        "height" : 240 ,
-        "border" : null ,
-        "areas" :
-            [
-            {
-            "specs" :
-                {
-                "id" : "UpperLeft" ,
-                "xaxis" : 0 ,
-                "yaxis" : 0 ,
-                "width" : 160 ,
-                "height" : 80
-                }
-            } ,
-            {
-            "specs" :
-                {
-                "id" : "UpperRight" ,
-                "xaxis" : 160 ,
-                "yaxis" : 0 ,
-                "width" : 160 ,
-                "height" : 80
-                }
-            } ,
-            {
-            "specs" :
-                {
-                "id" : "LowerLeft" ,
-                "xaxis" : 0 ,
-                "yaxis" : 80 ,
-                "width" : 160 ,
-                "height" : 160
-                }
-            } ,
-            {
-            "specs" :
-                {
-                "id" : "LowerRight" ,
-                "xaxis" : 160 ,
-                "yaxis" : 80 ,
-                "width" : 160 ,
-                "height" : 160
-                }
-            }
-            ]
+        "id" : "UpperLeft" ,
+        "type" : "text" ,
+        "wpos" : 0 ,
+        "hpos" : 0 ,
+        "wlen" : 160 ,
+        "hlen" : 80 ,
+        "padding" : 1 ,
+        "border" : [0, 255, 0]
+        } ,
+        {
+        "id" : "UpperRight" ,
+        "type" : "text" ,
+        "xpos" : 160 ,
+        "ypos" : 0 ,
+        "width" : 160 ,
+        "height" : 80 ,
+        "padding" : 1 ,
+        "border" : [0, 0, 255]
         }
+        ]
     }
     ]
 }
