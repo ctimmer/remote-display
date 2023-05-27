@@ -1,41 +1,157 @@
 {
-"id" : "screen" ,
-"wpos" : 0 ,
-"wlen" : 320 ,
-"hpos" : 0 ,
-"hlen" : 240 ,
-"areas" :
-    [
-    {
-    "wpos" : 0 ,
-    "wlen" : 320 ,
-    "hpos" : 0 ,
-    "hlen" : 240 ,
-    "padding" : 2 ,
-    "border" : [255, 0, 0]
-    "areas" :
-        [
+    "id": "screen",
+    "vpos": 0,
+    "vlen": 240,
+    "hpos": 0,
+    "hlen": 320,
+    "areas": [
         {
-        "id" : "UpperLeft" ,
-        "type" : "text" ,
-        "wpos" : 0 ,
-        "hpos" : 0 ,
-        "wlen" : 160 ,
-        "hlen" : 80 ,
-        "padding" : 1 ,
-        "border" : [0, 255, 0]
-        } ,
+            "id": "FirstRow",
+            "vpos": 0,
+            "vlen": 82,
+            "hpos": 0,
+            "hlen": 320,
+            "areas": [
+                {
+                    "id": "UpperLeft",
+                    "type": "text",
+                    "value": "UL: No Value",
+                    "hpos": 1,
+                    "hlen": 159,
+                    "vpos": 1,
+                    "vlen": 80,
+                    "padding": 1
+                },
+                {
+                    "id": "UpperRight",
+                    "type": "text",
+                    "value": "UR: No Value",
+                    "hpos": 160,
+                    "hlen": 159,
+                    "vpos": 1,
+                    "vlen": 80,
+                    "padding": 1
+                }
+            ]
+        },
         {
-        "id" : "UpperRight" ,
-        "type" : "text" ,
-        "xpos" : 160 ,
-        "ypos" : 0 ,
-        "width" : 160 ,
-        "height" : 80 ,
-        "padding" : 1 ,
-        "border" : [0, 0, 255]
+            "id": "LampRow",
+            "hpos": 20,
+            "hlen": 281,
+            "vpos": 90,
+            "vlen": 31,
+            "areas": [
+                {
+                "id": "Lamp1",
+                "type": "lamp",
+                "hpos": 1,
+                "hlen": 70,
+                "vpos": 1,
+                "vlen": 28,
+                "padding": 2,
+                "value": "L1",
+                "lampcolors": [
+                    {
+                    "name": "off",
+                    "lampcolorname": "BLUE" ,
+                    "textcolorname" : "WHITE"
+                    },
+                    {
+                    "name": "on",
+                    "lampcolorname": "GREEN" ,
+                    "textcolorname": "BLACK"
+                    }
+                    ]
+                },
+                {
+                "id": "StopLight",
+                "type": "lamp",
+                "hpos": 70,
+                "hlen": 70,
+                "vpos": 1,
+                "vlen": 28,
+                "padding": 2,
+                "value": "Off",
+                "lampcolors": [
+                        {
+                        "name": "stop",
+                        "textcolorname": "YELLOW" ,
+                        "lampcolorname": "RED" ,
+                        "value" : "Stop"
+                        },
+                        {
+                        "name": "go",
+                        "lampcolorname": "GREEN" ,
+                        "textcolorname": "RED" ,
+                         "value" : "Go"
+                        } ,
+                        {
+                        "name": "warn",
+                        "textcolorname": "BLUE" ,
+                        "lampcolorname": "YELLOW" ,
+                        "value" : "Wait"
+                        }
+                    ]
+                },
+                {
+                    "id": "WarpDrive",
+                    "type": "lamp",
+                    "hpos": 140,
+                    "hlen": 140,
+                    "vpos": 1,
+                    "vlen": 28,
+                    "padding": 2,
+                    "value": "Warp Drive",
+                    "lampcolors": [
+                        {
+                        "name": "good",
+                        "lampcolorname": "GREEN" ,
+                        "textcolorname" : "WHITE" ,
+                        "value" : "Warp Drive"
+                        } ,
+                        {
+                        "name": "bad",
+                        "lampcolorname": "RED" ,
+                        "textcolorname" : "WHITE"
+                        "value" : "Drive Alert"
+                        },
+                        {
+                        "name": "ok",
+                        "lampcolorrgb": [255, 165, 0] ,
+                        "textcolorname" : "WHITE" ,
+                        "value" : "Drive Warn!"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "LastRow",
+            "vpos": 180,
+            "vlen": 52,
+            "hpos": 0,
+            "hlen": 320,
+            "areas": [
+                {
+                    "id": "FortuneLabel",
+                    "vpos": 1,
+                    "vlen": 26,
+                    "hpos": 1,
+                    "hlen": 318,
+                    "padding": 1,
+                    "value": "         Magic 8-Ball"
+                },
+                {
+                    "id": "Fortune",
+                    "type": "text",
+                    "vpos": 26,
+                    "vlen": 26,
+                    "hpos": 1,
+                    "hlen": 318,
+                    "padding": 1,
+                    "value": "      Concentrate"
+                }
+            ]
         }
-        ]
-    }
     ]
 }
