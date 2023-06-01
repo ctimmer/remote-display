@@ -13,7 +13,7 @@ import ujson
 
 class ILI9341Display :
     def __init__ (self , **kwargs) :
-        #print (kwargs)
+        #print ("ILI9341Display:", kwargs)
         self.display = self.initialize_display (**kwargs)
         self.color_names = {
                         "BLACK" : self.convert_rgb (0, 0, 0) ,
@@ -149,23 +149,34 @@ class ILI9341Display :
         display_object_args = {}
         spi_args = {}
         display_args = {}
-        # parse
+        #
+        # if display is already set up, store it and exit
         for id in kwargs :
             if id in display_object_params :
                 arg_id = display_object_params [id]
                 display_object_args [arg_id] = kwargs [id]
-        if "display" in display_object_args :
-            return display_object_arg ["display"]
-
-        for id in kwargs :
-            if id in spi_params :
+            elif id in spi_params :
                 arg_id = spi_params [id]
                 spi_args [arg_id] = kwargs [id]
-        for id in kwargs :
-            if id in display_params :
-                #print (id)
+            elif id in display_params :
                 arg_id = display_params [id]
                 display_args [arg_id] = kwargs [id]
+            else :
+                print ("__init__: Unknown parameter", id)
+        if "display_object" in display_object_args :
+            self.display = display_object_args ["display_object"]
+            return self.display
+        #
+        # is this SPI
+#         for id in kwargs :
+#             if id in spi_params :
+#                 arg_id = spi_params [id]
+#                 spi_args [arg_id] = kwargs [id]
+#         for id in kwargs :
+#             if id in display_params :
+#                 #print (id)
+#                 arg_id = display_params [id]
+#                 display_args [arg_id] = kwargs [id]
 
         if "id" in spi_args :             # this is SPI
             for pin_arg in ["sck", "mosi", "miso"] :
@@ -192,7 +203,6 @@ class ILI9341Display :
         for id in kwargs :
             if id in self.screen_clear_params :
                 named_args [self.screen_clear_params [id]] = kwargs [id]
-        #print ("screen_clear:", named_args)
         self.display.clear (**named_args)
     def screen_off (self) :
         """Turn display off."""
@@ -366,6 +376,10 @@ class ILI9341Display :
     def get_color_name (self, color_name):
         return self.color_names[color_name]
 
+    def get_font_default (self) :
+        return self.font_default
+    def get_color_default (self) :
+        return self.color_default
     def get_background_default (self) :
         return self.background_default
         
@@ -579,9 +593,10 @@ class TraceDisplay (ILI9341Display) :
 #-------------------------------------------------------------------------------
 # RemoteDisplay
 #-------------------------------------------------------------------------------
-class RemoteDisplay (TraceDisplay) :
-#class RemoteDisplay (ILI9341Display) :
+#class RemoteDisplay (TraceDisplay) :
+class RemoteDisplay (ILI9341Display) :
     def __init__ (self, **kwargs) :
+        #print ("RD:", kwargs)
         super ().__init__ (**kwargs)
         self.active_default = True
         self.page = None
@@ -591,7 +606,7 @@ class RemoteDisplay (TraceDisplay) :
         self.areas = {}
 
         if "config_file" in kwargs :
-            print ("config_file")
+            #print ("config_file")
             self.setup_config_file (kwargs["config_file"])
             #self.setup_config_dict (config_dict)
         #print (self.areas)
@@ -602,17 +617,15 @@ class RemoteDisplay (TraceDisplay) :
                 config_dict = ujson.loads(config_file.read())
         except Exception :
             print ("Configuration file error:", file_name)
-            return None
+            return
         self.setup_config_dict (config_dict)
     def setup_config_dict (self, config_dict) :
         if config_dict is None :
             return
-        self.page_count += 1
         if "page_id" not in config_dict :
             config_dict["page_id"] = "_PAGE_{:2d}".format (self.page_count)
-
         config_dict["globals"] = {
-                              "active" : self.page_count <= 1 ,    # Only the first
+                              "active" : False ,    # No active pages
                               "font" : super().get_font_default() ,
                               "color" : super().get_color_default() ,
                               "background" : super().get_background_default()
@@ -620,10 +633,10 @@ class RemoteDisplay (TraceDisplay) :
         self.configure (None, config_dict)
         self.page_names[config_dict["page_id"]] = config_dict
         self.page_index.append (config_dict)
-        self.area_clear (config_dict)
-        if config_dict["globals"]["active"] :
+        self.area_reload (config_dict)
+        if self.page_count <= 0 :
             self.page = config_dict
-        return config_dict
+        self.page_count += 1
     def configure (self, parent, area) :
         #print ("area:", area)
         self.initialize_area (parent, area)
@@ -636,7 +649,6 @@ class RemoteDisplay (TraceDisplay) :
             self.configure (area, child)
     def initialize_area (self, parent, area) :
         if parent is None :
-
             parent_hpos = 0
             parent_vpos = 0
             if "vpos" not in area :
@@ -684,9 +696,11 @@ class RemoteDisplay (TraceDisplay) :
             self.setup_lamp_area (area)
         if "value" not in area :
             area ["value"] = ""
+        area["current_value"] = area ["value"]
     def setup_text_area (self, area) :
         if "value" not in area :
             area ["value"] = ""
+        area ["current_value"] = area ["value"]
     def setup_lamp_area (self, area) :
         color_by_idx = []
         color_by_name = {}
@@ -712,11 +726,13 @@ class RemoteDisplay (TraceDisplay) :
         area["backgroundcolor"] = color_by_idx[0]["lampcolor"]
         if "value" not in area :
             area ["value"] = ""
+        area ["current_value"] = area ["value"]
     def setup_container_area (self, area) :
         if "value" not in area :
             area ["value"] = ""
+        area ["current_value"] = area ["value"]
 
-    def area_clear (self, area) :
+    def area_reload (self, area) :
         if not area["globals"]["active"] :
             return
         super().rectangle_fill (x = area["hpos"] ,
@@ -724,17 +740,19 @@ class RemoteDisplay (TraceDisplay) :
                                     w = area["hlen"] ,
                                     h = area["vlen"] ,
                                     color = area["backgroundcolor"])
-        super().text (x = area["xmin"], y = area["ymin"], text = area["value"],
+        super().text (x = area["xmin"] ,
+                      y = area["ymin"] ,
+                      text = area["current_value"] ,
                       backgroundcolor = area["backgroundcolor"])
         for child_area in area["areas"] :
-            self.area_clear (child_area)
+            self.area_reload (child_area)
 
     def screen_reload (self) :
         self.screen_clear ()
-        self.area_clear (self.page)
+        self.area_reload (self.page)
 
     def update_text_area (self, **kwargs) :
-        #print ("uta:",kwargs)
+        #print ("uta:", kwargs)
         if "area" not in kwargs :
             print ("area missing")
             return
@@ -748,8 +766,13 @@ class RemoteDisplay (TraceDisplay) :
             return
         area ["current_value"] = kwargs ["value"]
         if area["globals"]["active"] :
-            super().rectangle_fill (x = area["xmin"],w=area["xlen"], y = area["ymin"],h=area["ylen"]) 
-            super().text (x = area["xmin"], y = area["ymin"], text = kwargs["value"])
+            super().rectangle_fill (x = area["xmin"],
+                                    w=area["xlen"],
+                                    y = area["ymin"],
+                                    h=area["ylen"]) 
+            super().text (x = area["xmin"],
+                          y = area["ymin"],
+                          text = kwargs["value"])
 
     def update_lamp_area (self, **kwargs) :
         #print ("Update Lamp:",kwargs)
@@ -798,7 +821,7 @@ class RemoteDisplay (TraceDisplay) :
         area = parent_area
         color = super().get_color_name ("WHITE")
         if first_time :
-            super().screen_clear (color=super().get_color_name ("BLACK"))
+            super().screen_clear (color = super().get_color_name ("BLACK"))
         if area is None :
             area = self.page
         #print (area["type"])
@@ -842,32 +865,73 @@ class RemoteDisplay (TraceDisplay) :
 # main
 ################################################################################
 #
+
+SPI_ID = 0
+SCK = 18
+MOSI = 19
+MISO = 16
+BAUDRATE = 10000000
+POLARITY = 1
+PHASE = 1
+BITS = 8
+#FIRSTBIT = SPI.MSB ,    # not implemented
+#---- Display parameters
+DISPLAY_WIDTH = 320
+DISPLAY_HEIGHT = 240
+ROTATION = 270
+DC = 15
+CS = 17
+RST = 14
+
 machine.freq(270000000)
 
-disp = RemoteDisplay (
-                    trace_output = False ,
-                    #trace_methods = [] ,
-                    config_file = "testconfig.json" ,
-                    #---- SPI parameters
-                    spi_id = 0 ,
-                    sck = 18 ,
-                    mosi = 19 ,
-                    miso = 16 ,
-                    baudrate = 10000000 ,
-                    polarity = 1 ,
-                    phase = 1 ,
-                    bits = 8 ,
-                    #firstbit = SPI.MSB ,    # not implemented
-                    #---- Display parameters
-                    display_width = 320 ,
-                    height = 240 ,
-                    rotation = 270 ,
-                    dc = 15 ,
-                    cs = 17 ,
-                    rst = 14
-                    )
+if False :
+    disp = RemoteDisplay (
+                        #trace_output = False ,
+                        #trace_methods = [] ,
+                        #config_file = "testtitle.json" ,
+                        #---- SPI parameters
+                        spi_id = SPI_ID ,
+                        sck = SCK ,
+                        mosi = MOSI ,
+                        miso = MISO ,
+                        baudrate = BAUDRATE ,
+                        polarity = POLARITY ,
+                        phase = PHASE ,
+                        bits = BITS ,
+                        #firstbit = SPI.MSB ,    # not implemented
+                        #---- Display parameters
+                        display_width = DISPLAY_WIDTH ,
+                        display_height = DISPLAY_HEIGHT ,
+                        rotation = ROTATION ,
+                        dc = DC ,
+                        cs = CS ,
+                        rst = RST
+                        )
+else :
+    spi = SPI (
+                SPI_ID,
+                baudrate = BAUDRATE ,
+                polarity = POLARITY ,
+                phase = PHASE ,
+                bits = BITS ,
+                sck = Pin (SCK) ,
+                mosi = Pin (MOSI) ,
+                miso = Pin (MISO)
+                )
+    display = Display (spi,
+                        width = DISPLAY_WIDTH ,
+                        height = DISPLAY_HEIGHT ,
+                        rotation = ROTATION ,
+                        dc = Pin (DC),
+                        cs = Pin (CS) ,
+                        rst = Pin (RST)
+                       )
+    disp = RemoteDisplay (display_object = display)
                     #
 disp.setup_config_file ("testtitle.json")
+disp.setup_config_file ("testconfig.json")
+disp.setup_config_file ("testeoj.json")
 
 #disp.set_trace_methods (["text", "pixel"]
 fortunes = [
@@ -911,20 +975,27 @@ print ("show_areas ####################")
 #time.sleep (5)
 #sys.exit()
 
-disp.screen_reload ()
+#disp.screen_reload ()
 disp.update_text_area (area = "UpperRight", value = "Test")
-#disp.update_text_area (area = "fortune", value = "It is certain")
+disp.update_text_area (area = "UpperLeft", value = "Upper Left")
 
-for i in range (0,20) :
-    print ("iter#################################################")
-    time.sleep (2)
-    #disp.page_by_name ("testsceen")
-    disp.page_by_index (i % 2)
+disp.page_by_name ("testtitle")
+time.sleep (5)
+start_ms = time.ticks_ms ()
+disp.page_by_name ("testconfig")
+for i in range (0,10) :
+    #print ("iter#################################################")
+    time.sleep (5)
+    disp.update_text_area (area = "UpperRight",
+                           value = str(time.ticks_diff (time.ticks_ms(), start_ms)))
     disp.update_text_area (area = "Fortune", value = fortunes [random.randrange (0,len(fortunes))])
     disp.update_lamp_area (area = "WarpDrive", stateidx = (i % 3))
     disp.update_lamp_area (area = "StopLight", stateidx = (i % 3))
-print (disp.get_trace_stats ())
-#sys.exit()
+    #disp.page_by_index (i % 2)
+#print (disp.get_trace_stats ())
+time.sleep (5)
+disp.page_by_name ("testeoj")
+sys.exit()
 
 disp.text (x = 20, y = 112, text="Hello, World!")
 for x in range (20,40) :

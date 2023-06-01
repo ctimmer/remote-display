@@ -1,4 +1,5 @@
 {
+    "page_id" : "testconfig" ,
     "id": "screen",
     "vpos": 0,
     "vlen": 240,
