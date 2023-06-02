@@ -1,0 +1,20 @@
+{
+    "page_id" : "testeoj" ,
+    "id": "screen",
+    "type" : "text" ,
+    "vpos": 0,
+    "vlen": 240,
+    "hpos": 0,
+    "hlen": 320,
+    "areas" :
+        [
+        {
+        "type" : "text" ,
+        "hpos" : 10 ,
+        "hlen" : 200 ,
+        "vpos" : 120 ,
+        "vlen" : 120 ,
+        "value" : "    End Of Job"
+        }
+        ]
+}
