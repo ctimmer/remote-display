@@ -2,14 +2,8 @@
 
 import sys
 import time
-#import random
 
-#from ili9341 import Display, color565
-#from machine import Pin, SPI  # type: ignore
-
-#from xglcd_font import XglcdFont
-
-#import ujson
+from ili9341_display import ILI9341Display
 
 #-------------------------------------------------------------------------------
 # TraceDisplay
