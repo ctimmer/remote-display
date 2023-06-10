@@ -1,6 +1,6 @@
 {
     "page_id" : "testeoj" ,
-    "id": "screen",
+    "id": "testeoj",
     "type" : "text" ,
     "vpos": 0,
     "vlen": 240,

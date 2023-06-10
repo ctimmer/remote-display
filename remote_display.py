@@ -10,9 +10,58 @@ from machine import Pin, SPI  # type: ignore
 
 import ujson
 
-#from ili9341 import Display
+from xglcd_font import XglcdFont
+from ili9341 import Display
 from ili9341_display import ILI9341Display
 #from trace_display import TraceDisplay
+
+class RemoteArea :
+    def __init__ (self ,
+                  remote_display ,
+                  area) :
+        self.remote_display = remote_display
+        self.area = area
+
+## end RemoteArea ##
+
+class RemoteImage (RemoteArea) :
+    def __init__ (self,
+                  remote_display,
+                  area) :
+        super().__init__ (remote_display, area)
+        #self.remote_display = remote_display
+        #self.area = area
+        self.image_file = ""
+    def update (self, **kwargs) :
+        print (__class__)
+
+## end RemoteImage ##
+
+class RemoteText (RemoteArea) :
+    def __init__ (self,
+                  remote_display,
+                  area) :
+        super().__init__ (remote_display, area)
+        #self.remote_display = remote_display
+        #self.area = area
+        self.image_file = ""
+    def update (self, **kwargs) :
+        print (__class__)
+
+## end RemoteImage ##
+
+class RemoteLamp (RemoteArea) :
+    def __init__ (self,
+                  remote_display,
+                  area) :
+        super().__init__ (remote_display, area)
+        #self.remote_display = remote_display
+        #self.area = area
+        self.image_file = ""
+    def update (self, **kwargs) :
+        print (__class__)
+
+## end RemoteLamp ##
 
 #-------------------------------------------------------------------------------
 # RemoteDisplay
@@ -28,6 +77,8 @@ class RemoteDisplay (ILI9341Display) :
         self.page_names = {}
         self.page_index = []
         self.areas = {}
+        self.fonts = {}
+        self.images = {}
 
         # Check for configuration file
         if "config_file" in kwargs :
@@ -117,6 +168,8 @@ class RemoteDisplay (ILI9341Display) :
             self.setup_text_area (area)
         elif area ["type"] == "lamp" :
             self.setup_lamp_area (area)
+        elif area ["type"] == "image" :
+            self.setup_image_area (area)
         if "value" not in area :
             area ["value"] = ""
         area["current_value"] = area ["value"]
@@ -150,11 +203,22 @@ class RemoteDisplay (ILI9341Display) :
         if "value" not in area :
             area ["value"] = ""
         area ["current_value"] = area ["value"]
+    def setup_image_area (self, area) :
+        area ["handler"] = RemoteImage (self, area)
+        print ("stup_image", area)
     def setup_container_area (self, area) :
         if "value" not in area :
             area ["value"] = ""
         area ["current_value"] = area ["value"]
 
+    def add_font (self, font_id, file_name, width, height) :
+        self.fonts [font_id] = XglcdFont (file_name, width, height)
+        #XglcdFont('fonts/Unispace12x24.c', 12, 24)
+    def add_image (self, image_id, file_name, width, height) :
+        self.images [image_id] = {"file_name" : file_name ,
+                                  "width" : width ,
+                                  "height" : height}
+            
     def area_reload (self, area) :
         if not area["globals"]["active"] :
             return
@@ -262,7 +326,7 @@ class RemoteDisplay (ILI9341Display) :
             
     def show_area (self, area_id) :
         if area_id not in self.areas :
-            print ("Unknown Label:", area_id)
+            print ("Unknown area id:", area_id)
             return
         self.show_areas (self.areas [area_id])
 
@@ -281,6 +345,18 @@ class RemoteDisplay (ILI9341Display) :
         self.page = self.page_index[page_index]
         self.page["globals"]["active"] = True
         self.screen_reload ()
+
+    def get_child_list (self, parent_id) :
+        if parent_id not in self.areas :
+            print ("Unknown area id:", parent_id)
+            #print (self.areas)
+            return
+        parent_area = self.areas [parent_id]
+        child_list = []
+        for area in parent_area ["areas"] :
+            if "id" in area :
+                child_list.append (area["id"])
+        return child_list
 
 ## end RemoteDisplay ##
 
@@ -308,7 +384,7 @@ RST = 14
 
 machine.freq(270000000)
 
-if True :
+if False :
     disp = RemoteDisplay (
                         #trace_output = False ,
                         #trace_methods = [] ,
@@ -351,10 +427,158 @@ else :
                         rst = Pin (RST)
                        )
     disp = RemoteDisplay (display_object = display)
+
+
 #
+iwidth = 15
+iheight = 25
+hpos = 0
+hlen = 15
+vpos = 0
+vlen = 25
+
+disp.add_font ('default', 'fonts/Unispace12x24.c', 12, 24)
+disp.add_font ('bally7x9', 'fonts/Bally7x9.c', 7, 9)
+
+disp.add_image ('eojimage', 'images/nixie0.raw', iwidth, iheight)
+
+disp.add_image ('nixie0', 'images/nixie0.raw', iwidth, iheight)
+disp.add_image ('nixie1', 'images/nixie1.raw', iwidth, iheight)
+disp.add_image ('nixie2', 'images/nixie2.raw', iwidth, iheight)
+disp.add_image ('nixie3', 'images/nixie3.raw', iwidth, iheight)
+disp.add_image ('nixie4', 'images/nixie4.raw', iwidth, iheight)
+disp.add_image ('nixie5', 'images/nixie5.raw', iwidth, iheight)
+disp.add_image ('nixie6', 'images/nixie6.raw', iwidth, iheight)
+disp.add_image ('nixie7', 'images/nixie7.raw', iwidth, iheight)
+disp.add_image ('nixie8', 'images/nixie8.raw', iwidth, iheight)
+disp.add_image ('nixie9', 'images/nixie9.raw', iwidth, iheight)
+disp.add_image ('nixieoff', 'images/nixieoff.raw', iwidth, iheight)
+disp.add_image ('nixieminus', 'images/nixieminus.raw', iwidth, iheight)
+# nixie with decimal point
+disp.add_image ('nixie0dp', 'images/nixie0dp.raw', iwidth, iheight)
+disp.add_image ('nixie1dp', 'images/nixie1dp.raw', iwidth, iheight)
+disp.add_image ('nixie2dp', 'images/nixie2dp.raw', iwidth, iheight)
+disp.add_image ('nixie3dp', 'images/nixie3dp.raw', iwidth, iheight)
+disp.add_image ('nixie4dp', 'images/nixie4dp.raw', iwidth, iheight)
+disp.add_image ('nixie5dp', 'images/nixie5dp.raw', iwidth, iheight)
+disp.add_image ('nixie6dp', 'images/nixie6dp.raw', iwidth, iheight)
+disp.add_image ('nixie7dp', 'images/nixie7dp.raw', iwidth, iheight)
+disp.add_image ('nixie8dp', 'images/nixie8dp.raw', iwidth, iheight)
+disp.add_image ('nixie9dp', 'images/nixie9dp.raw', iwidth, iheight)
+disp.add_image ('nixieoffdp', 'images/nixieoffdp.raw', iwidth, iheight)
+disp.add_image ('nixieminusdp', 'images/nixieminusdp.raw', iwidth, iheight)
+
+#---- Digits
+display.draw_image('images/nixie0.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie1.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie2.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie3.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie4.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie5.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie6.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie7.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie8.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie9.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixieminus.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+
+#---- Digits with decimal point
+vpos += vlen
+hpos = 0
+display.draw_image('images/nixie0dp.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie1dp.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie2dp.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie3dp.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie4dp.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie5dp.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie6dp.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie7dp.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie8dp.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie9dp.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixieoffdp.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixieminusdp.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+
+#---- Formated value
+vpos += vlen
+hpos = 0
+display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixieminus.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie2.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie3.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie8.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie5dp.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie4.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie7.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+
+time.sleep (3)
+hpos = 0
+display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie2.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie1dp.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie9.raw', hpos, vpos, iwidth, iheight)
+hpos += hlen
+display.draw_image('images/nixie4.raw', hpos, vpos, iwidth, iheight)
+time.sleep (2)
+#sys.exit ()
+
 disp.setup_config_file ("testtitle.json")
 disp.setup_config_file ("testconfig.json")
 disp.setup_config_file ("testeoj.json")
+print (disp.get_child_list ("screen"))
+#sys.exit()
 
 #disp.set_trace_methods (["text", "pixel"]
 fortunes = [
