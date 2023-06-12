@@ -103,6 +103,20 @@ class ILI9341Display :
                                 "color" : "color" ,
                                 "rotate" : "rotate"
                                 }
+        self.image_params = {
+                            "path" : "path" ,
+                            "file_name" : "path" ,
+                            "x" : "x" ,
+                            "xpos" : "x" ,
+                            "hpos" : "x" ,
+                            "y" : "y" ,
+                            "ypos" : "y" ,
+                            "vpos" : "y" ,
+                            "h" : "h" ,
+                            "height" : "h" ,
+                            "w" : "w" ,
+                            "width" : "w" ,
+                            }
     def initialize_display (self, **kwargs) :
         display = None
         display_object_params = {
@@ -351,6 +365,22 @@ class ILI9341Display :
             if id in self.circle_params :       # same as rectangle
                 named_args [self.circle_params [id]] = kwargs [id]
         self.display.fill_circle(**named_args)
+
+    '''
+    def draw_image(self, path, x=0, y=0, w=320, h=240):
+    '''
+    def image (self, **kwargs) :
+        named_args = {
+            "path" : None ,
+            "x" : None ,
+            "y" : None ,
+            "w" : None ,
+            "h" : None
+            }
+        for id in kwargs :
+            if id in self.image_params :
+                named_args [self.image_params [id]] = kwargs [id]
+        self.display.draw_image(**named_args)
 
     #-------------------------------------------------------------------------------        
     def convert_rgb (self, red, green, blue) :    # _16bit from below
