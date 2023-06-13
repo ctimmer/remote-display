@@ -147,24 +147,32 @@ class RemoteImage (RemoteArea) :
 
     def update (self, **kwargs) :
         #print (__class__, "update:", kwargs)
+        if "image_id" not in kwargs :
+            print ("image_id missing")
+            return
         image_id = kwargs["image_id"]
         if image_id == self.image_id_current :
             return
         if image_id not in self.remote_display.images :
-            print (image_id, self.remote_display.images)
+            print ("invalid image_id:", image_id)
             return
         self.image_id_current = image_id
+        self.reload (reload_all = False)
+
+    def reload (self, reload_all = True) :
+        if not self.page_is_active() :
+            return
+        if reload_all :
+            self.reload_background ()
+        #image_id = self.image_id_current
         image_args = {
                     "hpos" : self.xmin ,
                     "vpos" : self.ymin
                     }
-        image_args.update (self.remote_display.images[image_id])
+        image_args.update (self.remote_display.images[self.image_id_current])
         self.remote_display.image (**image_args)
-    def reload (self) :
-        self.reload_background ()
-        image_id = self.image_id_current
-        self.image_id_current = ""
-        self.update (image_id = image_id)
+        if reload_all :
+            self.reload_areas ()
 
 ## end RemoteImage ##
 
@@ -176,32 +184,29 @@ class RemoteText (RemoteArea) :
                   remote_display,
                   area_config) :
         super().__init__ (remote_display, area_config)
-        #self.remote_display = remote_display
-        #self.area = area
         self.text = ""
         if "value" in area_config :
             self.text = area_config ["value"]
         self.text_current = self.text
     def update (self, **kwargs) :
-        
         if "value" not in kwargs :
             return
         self.text_current = kwargs ["value"]
-        self.reload ()
-    def reload (self) :
-        #print (__class__, "reload:")
-        #print (self.text_current)
-        #self.reload_background ()
-        if self.page_is_active() :
-            #print ("active")
+        self.reload (reload_all = False)
+    def reload (self, reload_all = True) :
+        if not self.page_is_active() :
+            return
+        #print ("active")
+        if reload_all :
             self.reload_background ()
-            self.remote_display.rectangle_fill (x = self.xmin ,
-                                                w = self.xlen ,
-                                                y = self.ymin ,
-                                                h = self.ylen) 
-            self.remote_display.text (x = self.xmin ,
-                                      y = self.ymin ,
-                                      text = self.text_current)
+        self.remote_display.rectangle_fill (x = self.xmin ,
+                                            w = self.xlen ,
+                                            y = self.ymin ,
+                                            h = self.ylen) 
+        self.remote_display.text (x = self.xmin ,
+                                    y = self.ymin ,
+                                    text = self.text_current)
+        if reload_all :
             self.reload_areas ()
 
 ## end RemoteText ##
@@ -274,10 +279,11 @@ class RemoteLamp (RemoteArea) :
         self.lampcolor = lamp["lampcolor"]
         self.textcolor = lamp["textcolor"]
         self.text = lamp["text"]
-        self.reload ()
-    def reload (self) :
+        self.reload (reload_all = False)
+    def reload (self, reload_all = True) :
         if self.page_is_active() :
-            self.reload_background ()
+            if reload_all :
+                self.reload_background ()
             #print ("lamp color:", self.lampcolor)
             #print ("text color:", self.textcolor)
             #print ("text:", self.text)
@@ -291,7 +297,8 @@ class RemoteLamp (RemoteArea) :
                                       text = self.text ,
                                       color = self.textcolor ,
                                       backgroundcolor = self.lampcolor)
-            self.reload_areas ()   
+            if reload_all :
+                self.reload_areas ()   
 
 ## end RemoteLamp ##
 
@@ -301,6 +308,37 @@ class RemoteContainer (RemoteArea) :
                   remote_display,
                   area_config) :
         super().__init__ (remote_display, area_config)
+
+## end RemoteLamp ##
+
+#-------------------------------------------------------------------------------
+class RemoteTemplate (RemoteArea) :
+    def __init__ (self,
+                  remote_display,
+                  area_config) :
+        super().__init__ (remote_display, area_config)
+    def update (self, **kwargs) :
+        #
+        #---- Make changes to area parameters
+        #
+        self.reload (reload_all = False)
+        #
+    def reset (self) :
+        #
+        #---- Set area parameters to initial state
+        #
+        self.reload ()
+        #
+    def reload (self, reload_all = True) :
+        if not self.page_is_active() :
+            return
+        if reload_all :
+            self.reload_background ()
+        #
+        #---- Output to display here
+        #
+        if reload_all :
+            self.reload_areas ()
 
 ## end RemoteLamp ##
 
@@ -317,6 +355,12 @@ class RemoteDisplay (ILI9341Display) :
         self.page_names = {}
         self.page_index = []
         self.areas = {}
+        self.area_types = {   # Predefined types
+                        "container" : RemoteContainer ,
+                        "text" : RemoteText ,
+                        "lamp" : RemoteLamp ,
+                        "image" : RemoteImage
+                        }
         self.fonts = {}
         self.images = {}
         self.font_default = super().get_font_default()
@@ -364,14 +408,8 @@ class RemoteDisplay (ILI9341Display) :
         area_obj = None
         if "type" not in area :
             area ["type"] = "container"
-        if area["type"] == "text" :
-            area_obj = RemoteText (self, area)
-        elif area["type"] == "lamp" :
-            area_obj = RemoteLamp (self, area)
-        elif area["type"] == "image" :
-            area_obj = RemoteImage (self, area)
-        elif area["type"] == "container" :
-            area_obj = RemoteContainer (self, area)
+        if area ["type"] in self.area_types :
+            area_obj = self.area_types [area ["type"]] (self, area)
         else :
             print ("Unknown area type:", area["type"])
             area_obj = RemoteContainer (self, area)
@@ -387,6 +425,8 @@ class RemoteDisplay (ILI9341Display) :
             area_obj.add_area (self.configure (child))
         return area_obj
 
+    def add_area_type (self, area_type, area_class) :
+        self.area_types [area_type] = area_class
     def add_font (self, font_id, file_name, width, height) :
         self.fonts [font_id] = XglcdFont (file_name, width, height)
         #XglcdFont('fonts/Unispace12x24.c', 12, 24)
@@ -400,19 +440,6 @@ class RemoteDisplay (ILI9341Display) :
         #if not area["globals"]["active"] :
             return
         area.reload ()
-        '''
-        super().rectangle_fill (x = area["hpos"] ,
-                                    y = area["vpos"] ,
-                                    w = area["hlen"] ,
-                                    h = area["vlen"] ,
-                                    color = area["backgroundcolor"])
-        super().text (x = area["xmin"] ,
-                      y = area["ymin"] ,
-                      text = area["current_value"] ,
-                      backgroundcolor = area["backgroundcolor"])
-        for child_area in area["areas"] :
-            self.area_reload (child_area)
-        '''
 
     def screen_reload (self) :
         self.screen_clear ()
@@ -429,50 +456,6 @@ class RemoteDisplay (ILI9341Display) :
             return
         area = self.areas[area_id]
         area.update (**kwargs)
-
-    def update_lamp_area_rmove (self, **kwargs) :   # for back compatability
-        self.update_area (**kwargs)
-        return
-        #print ("Update Lamp:",kwargs)
-        if "area" not in kwargs :
-            return
-        area_id = kwargs ["area"]
-        if area_id not in self.areas :
-            return
-        area = self.areas[area_id]
-        if area["type"] != "lamp" :
-            return
-        #print ("Lamp:", area)
-        #print ("kwargs", kwargs)
-        lamp = None
-        lamp_color = None
-        text_color = None
-        if "statename" in kwargs :
-            lamp = area["color_by_name"][kwargs["color_name"]]["color"]
-        elif "stateidx" in kwargs :
-            #print (area["color_by_idx"])
-            lamp = area["color_by_idx"][kwargs["stateidx"]]
-        else :
-            print ("update_lamp_area: Missing color arg")
-            return
-
-        if "value" in kwargs :
-            area["value"] = kwargs["value"]
-        elif "value" in lamp :
-            area["value"] = lamp["value"]
-
-        #area ["backgroundcolor"] = lamp_color
-        if area["globals"]["active"] :
-            super().rectangle_fill (x = area["xmin"],
-                                    w = area["xlen"],
-                                    y = area["ymin"],
-                                    h = area["ylen"],
-                                    color = lamp["lampcolor"]) 
-            super().text (x = area["xmin"],
-                          y = area["ymin"],
-                          text = area["value"],
-                          color = lamp["textcolor"] ,
-                          backgroundcolor = lamp["lampcolor"])            
 
     def show_areas (self, parent_area=None, first_time=True) :
         #print (self.page)
@@ -572,7 +555,7 @@ RST = 14
 
 machine.freq(270000000)
 
-if False :
+if True :
     disp = RemoteDisplay (
                         #trace_output = False ,
                         #trace_methods = [] ,
@@ -616,6 +599,7 @@ else :
                        )
     disp = RemoteDisplay (display_object = display)
 
+disp.add_area_type ("template", RemoteTemplate)
 
 #
 iwidth = 15
@@ -686,111 +670,6 @@ nixie_img = {
             "-" : 'nixieminusdp'
             }
     }
-#---- Digits
-display.draw_image('images/nixie0.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie1.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie2.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie3.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie4.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie5.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie6.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie7.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie8.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie9.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixieminus.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-
-#---- Digits with decimal point
-vpos += vlen
-hpos = 0
-display.draw_image('images/nixie0dp.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie1dp.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie2dp.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie3dp.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie4dp.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie5dp.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie6dp.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie7dp.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie8dp.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie9dp.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixieoffdp.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixieminusdp.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-
-#---- Formated value
-vpos += vlen
-hpos = 0
-display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixieminus.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie2.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie3.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie8.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie5dp.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie4.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie7.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-
-#time.sleep (3)
-hpos = 0
-display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixieoff.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie2.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie1dp.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie9.raw', hpos, vpos, iwidth, iheight)
-hpos += hlen
-display.draw_image('images/nixie4.raw', hpos, vpos, iwidth, iheight)
-#time.sleep (2)
-#sys.exit ()
 
 disp.setup_config_file ("testtitle.json")
 disp.setup_config_file ("testconfig.json")
@@ -851,8 +730,8 @@ time.sleep (2)
 #nixie_img = {
 #    "digit" : {
         
-def display_nixie (num, nixie_cont) :
-    nixie_digits = disp.get_child_list ("nix")
+def display_nixie (num, nixie_container) :
+    nixie_digits = disp.get_child_list (nixie_container)
     if nixie_digits is None :
         return
     formatted = disp.number_justify (str(num), rlen=len(nixie_digits))
@@ -860,18 +739,17 @@ def display_nixie (num, nixie_cont) :
         formatted = " " + formatted
     flen = len(formatted)
     area_idx = 0
-    #digit_idx = 0
-    for digit_idx in range (0, len(nixie_digits) + 1) :
+    digit_idx = 0
+    for nixie_area_id in nixie_digits :
         if formatted [digit_idx] == "." :
-            continue
-        image_group = nixie_img["digit"]
+            digit_idx += 1                      # skip decimal point
+        image_group = nixie_img["digit"]        # default No DP
         if digit_idx < (flen - 1) :
             if formatted [digit_idx + 1] == "." :
-                image_group = nixie_img["digitdp"]
-        disp.update_area (area = nixie_digits[area_idx] ,
-                        image_id = image_group [str(formatted[digit_idx])] ,
-                          )
-        area_idx += 1
+                image_group = nixie_img["digitdp"] # digit + DP
+        disp.update_area (area = nixie_area_id ,
+                        image_id = image_group [str(formatted[digit_idx])])
+        digit_idx += 1
 
 #disp.page_by_name ("testtitle")
 #time.sleep (5)
