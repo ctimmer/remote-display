@@ -30,32 +30,42 @@ class ILI9341Display :
                         "TEAL" : self.convert_rgb (0, 128, 128) ,
                         "NAVY" : self.convert_rgb (0, 0, 128)
                         }
-        #self.font_default = XglcdFont('fonts/Unispace12x24.c', 12, 24)
-        self.font_default = XglcdFont('fonts/Unispace12x24.c', 12, 24)
-        self.color_default = self.color_names ["YELLOW"]
-        self.background_default = self.color_names ["BLUE"]
+        xy_params = {
+                    "x" : "x" ,
+                    "xpos" : "x" ,
+                    "hpos" : "x" ,
+                    "y" : "y" ,
+                    "ypos" : "y" ,
+                    "vpos" : "y"
+                    }
+        length_params = {
+                        "h" : "h" ,
+                        "vlen" : "h" ,
+                        "height" : "h" ,
+                        "w" : "w" ,
+                        "hlen" : "w" ,
+                        "width" : "w"
+                        }
         self.screen_clear_params = {
                                     "color" : "color" ,
                                     "hlines" : "hlines"
                                     }
         self.pixel_params = {
-                            "x" : "x" ,
-                            "xpos" : "x" ,
-                            "y" : "y" ,
-                            "ypos" : "y" ,
+                            #"x" : "x" ,
+                            #"xpos" : "x" ,
+                            #"y" : "y" ,
+                            #"ypos" : "y" ,
                             "color" : "color"
                             }
+        self.pixel_params.update (xy_params)
         self.text_params = {
-                            "x" : "x" ,
-                            "xpos" : "x" ,
-                            "y" : "y" ,
-                            "ypos" : "y" ,
                             "text" : "text" ,
                             "font" : "font" ,
                             "color" : "color" ,
                             "background" : "background" ,
                             "spacing" : "spacing"
                             }
+        self.text_params.update (xy_params)
         self.line_params = {
                             "x1" : "x1" ,
                             "x1pos" : "x1" ,
@@ -68,18 +78,20 @@ class ILI9341Display :
                             "color" : "color"
                             }
         self.rectangle_params = {
-                                "x" : "x" ,
-                                "xpos" : "x" ,
-                                "y" : "y" ,
-                                "ypos" : "y" ,
-                                "h" : "h" ,
-                                "vlen" : "h" ,
-                                "height" : "h" ,
-                                "w" : "w" ,
-                                "hlen" : "w" ,
-                                "width" : "w" ,
+                                #"x" : "x" ,
+                                #"xpos" : "x" ,
+                                #"y" : "y" ,
+                                #"ypos" : "y" ,
+                                #"h" : "h" ,
+                                #"vlen" : "h" ,
+                                #"height" : "h" ,
+                                #"w" : "w" ,
+                                #"hlen" : "w" ,
+                                #"width" : "w" ,
                                 "color" : "color"
                                 }
+        self.rectangle_params.update (xy_params)
+        self.rectangle_params.update (length_params)
         self.circle_params = {
                                 "x" : "x0" ,
                                 "x0" : "x0" ,
@@ -91,7 +103,6 @@ class ILI9341Display :
                                 "radius" : "r" ,
                                 "color" : "color"
                                 }
-        # draw_polygon(self, sides, x0, y0, r, color, rotate=0):
         self.polygon_params = {
                                 "sides" : "sides" ,
                                 "x0" : "x0" ,
@@ -105,18 +116,10 @@ class ILI9341Display :
                                 }
         self.image_params = {
                             "path" : "path" ,
-                            "file_name" : "path" ,
-                            "x" : "x" ,
-                            "xpos" : "x" ,
-                            "hpos" : "x" ,
-                            "y" : "y" ,
-                            "ypos" : "y" ,
-                            "vpos" : "y" ,
-                            "h" : "h" ,
-                            "height" : "h" ,
-                            "w" : "w" ,
-                            "width" : "w" ,
+                            "file_name" : "path"
                             }
+        self.image_params.update (xy_params)
+        self.image_params.update (length_params)
     def initialize_display (self, **kwargs) :
         display = None
         display_object_params = {
@@ -196,12 +199,14 @@ class ILI9341Display :
 
         return display
 
+    def font_initialize (self, file_name, width, height) :
+        return XglcdFont(file_name, width, height)
     '''
     def clear(self, color=0, hlines=8):
     '''
     def screen_clear (self, **kwargs) :
         named_args = {
-                    "color" : self.background_default
+                    "color" : None
                     }
         for id in kwargs :
             if id in self.screen_clear_params :
@@ -221,7 +226,7 @@ class ILI9341Display :
         named_args = {
                     "x" : 0 ,
                     "y" : 0 ,
-                    "color" : self.color_default
+                    "color" : None
                     }
         for id in kwargs :
             if id in self.text_params :
@@ -238,7 +243,7 @@ class ILI9341Display :
                     "x0" : 5 ,
                     "y0" : 5 ,
                     "r" : 4 ,
-                    "color" : self.color_default
+                    "color" : None
                     }
         for id in kwargs :
             if id in self.polygon_params :
@@ -253,19 +258,16 @@ class ILI9341Display :
     '''
     def text (self, **kwargs) :
         #print ("text kwargs:", kwargs)
-        backgroundcolor = self.background_default
-        if "backgroundcolor" in kwargs :
-            backgroundcolor = kwargs["backgroundcolor"]
         named_args = {
                     "x" : 0 ,
                     "y" : 0 ,
                     "text" : "NotSet" ,
-                    #"font" : self.font_default ,
-                    "color" : self.color_default ,
-                    "background" : backgroundcolor
+                    "font" : None ,
+                    "color" : None ,
+                    "background" : None
                     }
-        if self.font_default is not None :
-            named_args ["font"] = self.font_default
+        #if self.font_default is not None :
+            #named_args ["font"] = self.font_default
         for id in kwargs :
             if id in self.text_params :
                 named_args [self.text_params [id]] = kwargs [id]
@@ -285,7 +287,7 @@ class ILI9341Display :
                     "y1" : 0 ,
                     "x2" : 0 ,
                     "y2" : 0 ,
-                    "color" : self.color_default
+                    "color" : None
                     }
         for id in kwargs :
             if id in self.line_params :
@@ -297,15 +299,15 @@ class ILI9341Display :
     '''
     def rectangle (self, **kwargs) :
         #print ("text kwargs:", kwargs)
-        color = self.color_default
-        if "color" in kwargs :
-            color = kwargs ["color"]
+        #color = self.color_default
+        #if "color" in kwargs :
+            #color = kwargs ["color"]
         named_args = {
                     "x" : 0 ,
                     "y" : 0 ,
                     "h" : 0 ,
                     "w" : 0 ,
-                    "color" : color
+                    "color" : None
                     }
         for id in kwargs :
             if id in self.rectangle_params :
@@ -315,7 +317,7 @@ class ILI9341Display :
     def fill_rectangle(self, x, y, w, h, color):
     '''
     def rectangle_fill (self, **kwargs) :
-        color = self.background_default
+        color = None
         if "color" in kwargs :
             color = kwargs ["color"]
             #print ("rf:",color)
@@ -329,20 +331,20 @@ class ILI9341Display :
         for id in kwargs :
             if id in self.rectangle_params :       # same as rectangle
                 named_args [self.rectangle_params [id]] = kwargs [id]
-        #print (named_args)
+        #print ("rec_fill:", named_args)
         self.display.fill_rectangle(**named_args)
     '''
     def draw_circle(self, x0, y0, r, color):
     '''
     def circle (self, **kwargs) :
-        color = self.color_default
-        if "color" in kwargs :
-            color = kwargs ["color"]
+        #color = self.color_default
+        #if "color" in kwargs :
+            #color = kwargs ["color"]
         named_args = {
                     "x0" : 10 ,
                     "y0" : 10 ,
                     "r" : 10 ,
-                    "color" : color
+                    "color" : None
                     }
         for id in kwargs :
             if id in self.circle_params :       # same as rectangle
@@ -352,14 +354,14 @@ class ILI9341Display :
     def fill_circle(self, x0, y0, r, color):
     '''
     def circle_fill (self, **kwargs) :
-        color = self.color_default
-        if "color" in kwargs :
-            color = kwargs ["color"]
+        #color = self.color_default
+        #if "color" in kwargs :
+            #color = kwargs ["color"]
         named_args = {
                     "x0" : 10 ,
                     "y0" : 10 ,
                     "r" : 10 ,
-                    "color" : color
+                    "color" : None
                     }
         for id in kwargs :
             if id in self.circle_params :       # same as rectangle
@@ -370,6 +372,7 @@ class ILI9341Display :
     def draw_image(self, path, x=0, y=0, w=320, h=240):
     '''
     def image (self, **kwargs) :
+        #print ("image kwargs:", kwargs)
         named_args = {
             "path" : None ,
             "x" : None ,
@@ -395,12 +398,12 @@ class ILI9341Display :
     def get_color_name (self, color_name):
         return self.color_names[color_name]
 
-    def get_font_default (self) :
-        return self.font_default
-    def get_color_default (self) :
-        return self.color_default
-    def get_background_default (self) :
-        return self.background_default
+    #def get_font_default (self) :
+        #return self.font_default
+    #def get_color_default (self) :
+        #return self.color_default
+    #def get_background_default (self) :
+        #return self.background_default
         
     def reverse_bits (self, bit_field, bits=8) :
         reversed_bits = 0x000000

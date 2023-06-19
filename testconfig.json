@@ -1,20 +1,20 @@
 {
     "page_id" : "testconfig" ,
-    "id": "screen",
+    "area_id": "screen",
     "vpos": 0,
     "vlen": 240,
     "hpos": 0,
     "hlen": 320,
     "areas": [
         {
-            "id": "FirstRow",
+            "area_id": "FirstRow",
             "vpos": 0,
             "vlen": 82,
             "hpos": 0,
             "hlen": 320,
             "areas": [
                 {
-                    "id": "UpperLeft",
+                    "area_id": "UpperLeft",
                     "type": "text",
                     "value": "UL: No Value",
                     "hpos": 1,
@@ -24,7 +24,7 @@
                     "padding": 1
                 },
                 {
-                    "id": "UpperRight",
+                    "area_id": "UpperRight",
                     "type": "text",
                     "value": "UR: No Value",
                     "hpos": 160,
@@ -36,36 +36,37 @@
             ]
         },
         {
-            "id": "LampRow",
+            "area_id": "LampRow",
             "hpos": 20,
             "hlen": 281,
             "vpos": 90,
             "vlen": 31,
             "areas": [
                 {
-                "id": "Lamp1",
+                "area_id": "Lamp1",
                 "type": "lamp",
                 "hpos": 1,
                 "hlen": 70,
                 "vpos": 1,
                 "vlen": 28,
                 "padding": 2,
-                "value": "L1",
                 "lampcolors": [
                     {
                     "name": "off",
-                    "lampcolorname": "BLUE" ,
-                    "textcolorname" : "WHITE"
+                    "lampcolorname": "CYAN" ,
+                    "textcolorname" : "BLACK" ,
+                    "value" : "Off"
                     },
                     {
                     "name": "on",
                     "lampcolorname": "GREEN" ,
-                    "textcolorname": "BLACK"
+                    "textcolorname": "BLACK" ,
+                    "value" : "On"
                     }
                     ]
                 },
                 {
-                "id": "StopLight",
+                "area_id": "StopLight",
                 "type": "lamp",
                 "hpos": 70,
                 "hlen": 70,
@@ -95,7 +96,7 @@
                     ]
                 },
                 {
-                    "id": "WarpDrive",
+                    "area_id": "WarpDrive",
                     "type": "lamp",
                     "hpos": 140,
                     "hlen": 140,
@@ -127,14 +128,105 @@
             ]
         },
         {
-            "id": "LastRow",
+            "area_id": "nix",
+            "vpos": 130,
+            "vlen": 30,
+            "hpos": 40,
+            "hlen": 280 ,
+            "areas": [
+                {
+                "area_id" : "nix.p0" ,
+                "type" : "image" ,
+                "hpos" : 0 ,
+                "hlen" : 15 ,
+                "vpos" : 0 ,
+                "vlen" : 25 ,
+                "image_id" : "nixieoff"
+                } ,
+                {
+                "area_id" : "nix.p1" ,
+                "type" : "image" ,
+                "hpos" : 15 ,
+                "hlen" : 15 ,
+                "vpos" : 0 ,
+                "vlen" : 25 ,
+                "image_id" : "nixieoff"
+                } ,
+                {
+                "area_id" : "nix.p2" ,
+                "type" : "image" ,
+                "hpos" : 30 ,
+                "hlen" : 15 ,
+                "vpos" : 0 ,
+                "vlen" : 25 ,
+                "image_id" : "nixieoff"
+                } ,
+                {
+                "area_id" : "nix.p3" ,
+                "type" : "image" ,
+                "hpos" : 45 ,
+                "hlen" : 15 ,
+                "vpos" : 0 ,
+                "vlen" : 25 ,
+                "image_id" : "nixieoff"
+                } ,
+                {
+                "area_id" : "nix.p4" ,
+                "type" : "image" ,
+                "hpos" : 60 ,
+                "hlen" : 15 ,
+                "vpos" : 0 ,
+                "vlen" : 25 ,
+                "image_id" : "nixieoff"
+                } ,
+                {
+                "area_id" : "nix.p5" ,
+                "type" : "image" ,
+                "hpos" : 75 ,
+                "hlen" : 15 ,
+                "vpos" : 0 ,
+                "vlen" : 25 ,
+                "image_id" : "nixieoff"
+                } ,
+                {
+                "area_id" : "nix.p6" ,
+                "type" : "image" ,
+                "hpos" : 90 ,
+                "hlen" : 15 ,
+                "vpos" : 0 ,
+                "vlen" : 25 ,
+                "image_id" : "nixieoff"
+                } ,
+                {
+                "area_id" : "nix.p7" ,
+                "type" : "image" ,
+                "hpos" : 105 ,
+                "hlen" : 15 ,
+                "vpos" : 0 ,
+                "vlen" : 25 ,
+                "image_id" : "nixieoff"
+                } ,
+                {
+                "area_id" : "nix.p8" ,
+                "type" : "image" ,
+                "hpos" : 120 ,
+                "hlen" : 15 ,
+                "vpos" : 0 ,
+                "vlen" : 25 ,
+                "image_id" : "nixieoff"
+                }
+                ]
+        }
+        {
+            "area_id": "LastRow",
             "vpos": 180,
             "vlen": 52,
             "hpos": 0,
             "hlen": 320,
             "areas": [
                 {
-                    "id": "FortuneLabel",
+                    "area_id": "FortuneLabel",
+                    "type" : "text" ,
                     "vpos": 1,
                     "vlen": 26,
                     "hpos": 1,
@@ -143,7 +235,7 @@
                     "value": "         Magic 8-Ball"
                 },
                 {
-                    "id": "Fortune",
+                    "area_id": "Fortune",
                     "type": "text",
                     "vpos": 26,
                     "vlen": 26,

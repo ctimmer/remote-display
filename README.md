@@ -7,6 +7,14 @@ Display server that display data received from 1 or more clients
 
 **Purpose:**
 
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+```
+
 Configure the fields (areas) for the display
 
 API to update areas (fields) on a display
@@ -70,10 +78,6 @@ RemoteDisplay.area_reload (area)
 RemoteDisplay.screen_reload ()
 
   - Redisplays the active screen (page)
-
-RemoteDisplay.update_text_area
-
-RemoteDisplay.update_lamp_area
 
 RemoteDisplay.show_areas ()
 

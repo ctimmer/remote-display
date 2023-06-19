@@ -1,4 +1,27 @@
 #
+################################################################################
+# The MIT License (MIT)
+#
+# Copyright (c) 2023 Curt Timmerman
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+################################################################################
 
 import sys
 import time
@@ -11,10 +34,10 @@ from machine import Pin, SPI  # type: ignore
 
 import ujson
 
-from xglcd_font import XglcdFont
-from ili9341 import Display
-from ili9341_display import ILI9341Display
-#from trace_display import TraceDisplay
+#from xglcd_font import XglcdFont
+#from ili9341 import Display
+#from ili9341_display import ILI9341Display
+from trace_display import TraceDisplay
 
 #-------------------------------------------------------------------------------
 # RemotePage
@@ -58,9 +81,10 @@ class RemoteArea :
         self.paddingwidth = 0
         #self.backgroundcolor = remote_display.get_background_default()
         self.backgroundwidth = 0
-        self.backgroundcolor = None
+        self.backgroundcolor = remote_display.get_background_color_default ()
         self.font = remote_display.get_font_default()
-        self.fontcolor = remote_display.get_color_default()
+        self.fontcolor = remote_display.get_font_color_default()
+        self.show_border_color = self.remote_display.get_color_name ("WHITE")
         self.areas = []
         if "area_id" in area :
             self.area_id = area["area_id"]
@@ -130,6 +154,18 @@ class RemoteArea :
         self.reload_background ()
         self.reload_areas ()
 
+    def show_area (self, show_all = True) :
+        #print (self.page)
+        #color = self.remote_display.get_color_name ("WHITE")
+        self.remote_display.rectangle (x = self.hpos ,
+                                        y = self.vpos ,
+                                        w = self.hlen ,
+                                        h = self.vlen ,
+                                        color = self.show_border_color)
+        if show_all :
+            for child_area in self.areas :
+                child_area.show_area ()
+
 ## end RemoteArea ##
 
 #-------------------------------------------------------------------------------
@@ -144,6 +180,7 @@ class RemoteImage (RemoteArea) :
         if "image_id" in area_config :
             self.image_id = area_config["image_id"]
         self.image_id_current = self.image_id
+        self.show_border_color = remote_display.get_color_name ("YELLOW")
 
     def update (self, **kwargs) :
         #print (__class__, "update:", kwargs)
@@ -202,10 +239,14 @@ class RemoteText (RemoteArea) :
         self.remote_display.rectangle_fill (x = self.xmin ,
                                             w = self.xlen ,
                                             y = self.ymin ,
-                                            h = self.ylen) 
+                                            h = self.ylen,
+                                            color=self.backgroundcolor) 
         self.remote_display.text (x = self.xmin ,
                                     y = self.ymin ,
-                                    text = self.text_current)
+                                    text = self.text_current,
+                                  font = self.font ,
+                                  color = self.fontcolor ,
+                                  background = self.backgroundcolor)
         if reload_all :
             self.reload_areas ()
 
@@ -287,16 +328,20 @@ class RemoteLamp (RemoteArea) :
             #print ("lamp color:", self.lampcolor)
             #print ("text color:", self.textcolor)
             #print ("text:", self.text)
+            #print ("lamp: reload#####################")
+            #print ("lamp: clear")
             self.remote_display.rectangle_fill (x = self.xmin ,
                                                 w = self.xlen ,
                                                 y = self.ymin ,
                                                 h = self.ylen ,
-                                                color = self.lampcolor) 
+                                                color = self.lampcolor)
+            #print ("lamp: text")
             self.remote_display.text (x = self.xmin ,
                                       y = self.ymin ,
                                       text = self.text ,
+                                      font = self.font ,
                                       color = self.textcolor ,
-                                      backgroundcolor = self.lampcolor)
+                                      background = self.lampcolor)
             if reload_all :
                 self.reload_areas ()   
 
@@ -345,8 +390,22 @@ class RemoteTemplate (RemoteArea) :
 #-------------------------------------------------------------------------------
 # RemoteDisplay
 #-------------------------------------------------------------------------------
-#class RemoteDisplay (TraceDisplay) :
-class RemoteDisplay (ILI9341Display) :
+class RemoteSwitchPage () :
+    def __init__ (self, remote_display) :
+        self.remote_display = remote_display
+    def update (self, **kwargs) :
+        if "page_id" in kwargs :
+            self.remote_display.page_by_name (kwargs["page_id"])
+        elif "page_index" in kwargs :
+            self.remote_display.page_by_index (kwargs["page_index"])
+
+## end RemoteSwitch_page ##
+
+#-------------------------------------------------------------------------------
+# RemoteDisplay
+#-------------------------------------------------------------------------------
+class RemoteDisplay (TraceDisplay) :
+#class RemoteDisplay (ILI9341Display) :
     def __init__ (self, **kwargs) :
         #print ("RemoteDisplay __init__:", kwargs)
         super ().__init__ (**kwargs)
@@ -361,14 +420,34 @@ class RemoteDisplay (ILI9341Display) :
                         "lamp" : RemoteLamp ,
                         "image" : RemoteImage
                         }
+        self.color_names = {
+                        "BLACK" : self.convert_rgb (0, 0, 0) ,
+                        "WHITE" : self.convert_rgb (255, 255, 255) ,
+                        "RED" : self.convert_rgb (255, 0, 0) ,
+                        "LIME" : self.convert_rgb (0, 255, 0) ,
+                        "BLUE" : self.convert_rgb (0, 0, 255) ,
+                        "YELLOW" : self.convert_rgb (255, 255, 0) ,
+                        "CYAN" : self.convert_rgb (0, 255, 255) ,
+                        "MAGENTA" : self.convert_rgb (255, 0, 255) ,
+                        "SILVER" : self.convert_rgb (192, 192, 192) ,
+                        "GRAY" : self.convert_rgb (128, 128, 128) ,
+                        "MAROON" : self.convert_rgb (128, 0, 0) ,
+                        "OLIVE" : self.convert_rgb (128, 128, 0) ,
+                        "GREEN" : self.convert_rgb (0, 128, 0) ,
+                        "PURPLE" : self.convert_rgb (80, 0, 80) ,
+                        "TEAL" : self.convert_rgb (0, 128, 128) ,
+                        "NAVY" : self.convert_rgb (0, 0, 128)
+                        }
         self.fonts = {}
         self.images = {}
-        self.font_default = super().get_font_default()
-        self.font_color_default = super().get_color_default() ,
-        self.background_width_default = 0
-        self.background_color_default = super().get_background_default()
+        self.font_default = None
+        self.font_color_default = self.color_names ["WHITE"]
+        self.background_color_default = self.color_names ["BLUE"]
+        self.border_color_default = self.color_names ["BLUE"]
+        self.border_width_default = 0
         self.padding_width_default = 0
         self.configuration_page = None
+
         # Check for configuration file
         if "config_file" in kwargs :
             self.setup_config_file (kwargs["config_file"])
@@ -378,10 +457,12 @@ class RemoteDisplay (ILI9341Display) :
 
     def setup_config_file (self, file_name) :
         config_dict = None
-        try :
+        #try :
+        if True :
             with open(file_name, 'r') as config_file:
                 config_dict = ujson.loads(config_file.read())
-        except Exception :
+        #except Exception :
+        else :
             print ("Configuration file error:", file_name)
             return
         self.setup_config_dict (config_dict)
@@ -425,25 +506,44 @@ class RemoteDisplay (ILI9341Display) :
             area_obj.add_area (self.configure (child))
         return area_obj
 
+    def get_color_name (self, color_name) :
+        return self.color_names [color_name]
+
+    #---- Load command (eg. switch page)
+    def add_update (self, update_id, update_class) :
+        self.areas [update_id] = update_class (self)
+    #---- User defined area type
     def add_area_type (self, area_type, area_class) :
         self.area_types [area_type] = area_class
+    #---- Load font
     def add_font (self, font_id, file_name, width, height) :
-        self.fonts [font_id] = XglcdFont (file_name, width, height)
-        #XglcdFont('fonts/Unispace12x24.c', 12, 24)
-    def add_image (self, image_id, file_name, width, height) :
-        self.images [image_id] = {"file_name" : file_name ,
+        self.fonts [font_id] = super().font_initialize (file_name, width, height)
+        if self.font_default == None :
+            self.font_default = self.fonts [font_id]    # first font
+    #---- Load image
+    def add_image (self, image_id, file_name, width, height, ramdisk_file_name = None) :
+        image_file = file_name
+        #
+        if ramdisk_file_name is not None :
+            try :
+                with open (file_name, "r") as disk_file :
+                    with open (ramdisk_file_name, "w") as ramdisk_file :
+                        ramdisk_file.write (disk_file.read())
+                image_file = ramdisk_file_name
+            except Exception :
+                print ("copy to ramdisk failed:", file_name)
+        #
+        self.images [image_id] = {"file_name" : image_file ,
                                   "width" : width ,
                                   "height" : height}
             
     def area_reload (self, area) :
         if not area.page_is_active () :
-        #if not area["globals"]["active"] :
             return
         area.reload ()
 
     def screen_reload (self) :
-        self.screen_clear ()
-        #print ("screen_reload:", self.page)
+        self.screen_clear (color = self.background_color_default)
         self.area_reload (self.page)
 
     def update_area (self, **kwargs) :
@@ -456,33 +556,17 @@ class RemoteDisplay (ILI9341Display) :
             return
         area = self.areas[area_id]
         area.update (**kwargs)
-
-    def show_areas (self, parent_area=None, first_time=True) :
-        #print (self.page)
-        area = parent_area
-        color = super().get_color_name ("WHITE")
-        if first_time :
-            super().screen_clear (color = super().get_color_name ("BLACK"))
-        if area is None :
-            area = self.page
-        #print (area["type"])
-        if area["type"] == "text" :
-            color = super().get_color_name ("GREEN")
-        elif area["type"] == "lamp" :
-            color = super().get_color_name ("RED")
-        super().rectangle (x = area["hpos"] ,
-                            y = area["vpos"] ,
-                            w = area["hlen"] ,
-                            h = area["vlen"] ,
-                            color = color)
-        for child_area in area["areas"] :
-            self.show_areas (parent_area=child_area, first_time=False)
             
-    def show_area (self, area_id) :
-        if area_id not in self.areas :
+    def show_area (self, area_id = None, show_all = True) :
+        area = None
+        if area_id is None :
+            area = self.page
+        elif area_id in self.areas :
+            area = self.areas [area_id]
+        else :
             print ("Unknown area id:", area_id)
             return
-        self.show_areas (self.areas [area_id])
+        area.show_area (show_all = show_all)
 
     def page_by_name (self, page_name) :
         #print ("page_by_name:",self.page_names)
@@ -529,6 +613,13 @@ class RemoteDisplay (ILI9341Display) :
             formatted = formatted [(flen - rlen)]
         return formatted
 
+    def get_font_default (self) :
+        return self.font_default
+    def get_font_color_default (self) :
+        return self.font_color_default
+    def get_background_color_default (self) :
+        return self.background_color_default
+    
 ## end RemoteDisplay ##
 
 ################################################################################
@@ -553,12 +644,12 @@ DC = 15
 CS = 17
 RST = 14
 
-machine.freq(270000000)
+#machine.freq(270000000)
 
 if True :
     disp = RemoteDisplay (
-                        #trace_output = False ,
-                        #trace_methods = [] ,
+                        trace_output = False ,
+                        #trace_methods = ["image"] ,
                         #config_file = "testtitle.json" ,
                         #---- SPI parameters
                         spi_id = SPI_ID ,
@@ -600,6 +691,7 @@ else :
     disp = RemoteDisplay (display_object = display)
 
 disp.add_area_type ("template", RemoteTemplate)
+disp.add_update ("switchpage", RemoteSwitchPage)
 
 #
 iwidth = 15
@@ -611,8 +703,6 @@ vlen = 25
 
 disp.add_font ('default', 'fonts/Unispace12x24.c', 12, 24)
 disp.add_font ('bally7x9', 'fonts/Bally7x9.c', 7, 9)
-
-disp.add_image ('eojimage', 'images/nixie0.raw', iwidth, iheight)
 
 disp.add_image ('nixie0', 'images/nixie0.raw', iwidth, iheight)
 disp.add_image ('nixie1', 'images/nixie1.raw', iwidth, iheight)
@@ -674,6 +764,8 @@ nixie_img = {
 disp.setup_config_file ("testtitle.json")
 disp.setup_config_file ("testconfig.json")
 disp.setup_config_file ("testeoj.json")
+disp.show_area ("screen")
+sys.exit()
 
 #sys.exit()
 
@@ -705,7 +797,7 @@ fortunes = [
 #disp.dummy_test ()
 #sys.exit()
 
-print ("screen_reload")
+#print ("screen_reload")
 #disp.screen_reload ()
 #disp.circle_fill (xpos=50, ypos=50, r=25, color=disp.color_names ["RED"])
 #time.sleep (5)
@@ -713,23 +805,13 @@ print ("screen_reload")
 #disp.update_lamp_area (area = "WarpDrive", color_name = "ok")
 #sys.exit ()
 
-print ("show_areas ####################")
-#disp.show_areas ()
-#disp.show_areas ()
-#time.sleep (5)
-#sys.exit()
+
 
 #disp.screen_reload ()
 
 disp.update_area (area = "UpperRight", value = "Test")
 disp.update_area (area = "UpperLeft", value = "Upper Left")
-disp.page_by_name ("testconfig")
-time.sleep (2)
-#sys.exit()
 
-#nixie_img = {
-#    "digit" : {
-        
 def display_nixie (num, nixie_container) :
     nixie_digits = disp.get_child_list (nixie_container)
     if nixie_digits is None :
@@ -751,15 +833,20 @@ def display_nixie (num, nixie_container) :
                         image_id = image_group [str(formatted[digit_idx])])
         digit_idx += 1
 
-#disp.page_by_name ("testtitle")
+disp.update_area (area = "switchpage", page_id = "testtitle")
+time.sleep (2)
+disp.update_area (area = "switchpage", page_id = "testconfig")
+#time.sleep (2)
+print ("show_areas ####################")
+#disp.show_area (area_id = "LampRow", show_all = False)
+disp.show_area ()
 #time.sleep (5)
+#sys.exit()
+
 start_ms = time.ticks_ms ()
-disp.page_by_name ("testconfig")
-#nixie_digits = disp.get_child_list ("nix")
-#print (nixie_digits)
 for i in range (0,10) :
-    #print ("iter#################################################")
-    time.sleep (5)
+    time.sleep (2)
+    print ("iteration #################################################")
     ticks = disp.number_justify (str(time.ticks_diff (time.ticks_ms(), start_ms)))
     disp.update_area (area = "UpperRight", value = ticks)
                       #value = disp.number_justify (str(time.ticks_diff (time.ticks_ms(), start_ms))))
@@ -775,23 +862,14 @@ for i in range (0,10) :
     #disp.page_by_index (i % 2)
 #print (disp.get_trace_stats ())
 time.sleep (5)
-disp.page_by_name ("testeoj")
-sys.exit()
+disp.update_area (area = "switchpage", page_id = "testeoj")
+#disp.page_by_name ("testeoj")
+#sys.exit()
 
-disp.text (x = 20, y = 112, text="Hello, World!")
-for x in range (20,40) :
-    disp.pixel (x = x, y = 10, color = disp.color_names ["RED"])
-
-disp.line (x1 = 30, y1 = 30, x2 = 90, y2 = 90, color = disp.color_names ["WHITE"])
-
-disp.rectangle (x = 50, y = 150, width = 100, height = 20, color = disp.color_names ["CYAN"])
-
-disp.polygon (sides = 6, x0 = 50, y0 = 200, r = 10)
-
-'''
+time.sleep (2)
 disp.screen_off ()
 time.sleep (2)
 disp.screen_on ()
-time.sleep (2)
-'''
-print (disp.get_trace_stats ())
+#time.sleep (2)
+
+#print (disp.get_trace_stats ())

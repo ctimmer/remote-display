@@ -1,6 +1,6 @@
 {
     "page_id" : "testeoj" ,
-    "id": "testeoj",
+    "area_id": "testeoj",
     "type" : "text" ,
     "vpos": 0,
     "vlen": 240,
@@ -11,10 +11,10 @@
         {
         "type" : "text" ,
         "hpos" : 10 ,
-        "hlen" : 200 ,
-        "vpos" : 120 ,
-        "vlen" : 120 ,
-        "value" : "    End Of Job"
+        "hlen" : 30 ,
+        "vpos" : 40 ,
+        "vlen" : 200 ,
+        "value" : "         End Of Job"
         }
         ]
 }
