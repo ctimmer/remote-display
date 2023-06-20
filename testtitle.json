@@ -1,10 +1,11 @@
 {
     "page_id" : "testtitle" ,
     "area_id": "testtitle",
-    "type" : "text" ,
+    "type" : "container"
     "vpos": 0,
     "vlen": 240,
     "hpos": 0,
     "hlen": 320,
-    "value" : "          Title Page"
+    "text" : "          Title Page" ,
+    "backgroundcolorrgb" : [255, 0, 255]
 }

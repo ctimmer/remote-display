@@ -66,8 +66,6 @@ class RemoteArea :
         super().__init__ ()
         self.remote_display = remote_display
         self.page = remote_display.get_configuration_page ()
-        #print ("init:", self.page)
-        #self.area = area
         parent_hpos = 0
         parent_vpos = 0
         self.area_id = None
@@ -112,11 +110,19 @@ class RemoteArea :
         if "paddingwidth" in area :
             self.paddingwidth = area ["paddingwidth"]
         if "backgroundcolor" in area :
-            self.backgroundcolor = area ["backgroundcolor"]
-        if "font_id" in area :
-            self.font = remote_display.get_font (area ["font_id"])
+            self.backgroundcolor = area["backgroundcolor"]
+        elif "backgroundcolorrgb" in area :
+            self.backgroundcolor = remote_display.convert_rgb (*area["backgroundcolorrgb"])
+        elif "backgroundcolorname" in area :
+            self.backgroundcolor = remote_display.get_color_by_name (area["backgroundcolorname"])
+        if "font" in area :
+            self.font = remote_display.get_font (area ["font"])
         if "fontcolor" in area :
             self.fontcolor = area ["fontcolor"]
+        elif "fontcolorrgb" in area :
+            self.fontcolor = remote_display.convert_rgb (*area["fontcolorrgb"])
+        elif "fontcolorname" in area :
+            self.fontcolor = remote_display.get_color_by_name (area["fontcolorname"])
 
         #---- Set field data position/lengths parameters
         offsets = self.borderwidth + self.paddingwidth
@@ -353,8 +359,32 @@ class RemoteContainer (RemoteArea) :
                   remote_display,
                   area_config) :
         super().__init__ (remote_display, area_config)
+        self.text = None
+        if "text" in area_config :
+            self.text = area_config["text"]
 
-## end RemoteLamp ##
+    def reload (self, reload_all = True) :
+        if not self.page_is_active() :
+            return
+        if reload_all :
+            self.reload_background ()
+        self.remote_display.rectangle_fill (x = self.xmin ,
+                                            w = self.xlen ,
+                                            y = self.ymin ,
+                                            h = self.ylen ,
+                                            color=self.backgroundcolor)
+        if self.text is not None :
+            self.remote_display.text (x = self.xmin ,
+                                        y = self.ymin ,
+                                        text = self.text ,
+                                        font = self.font ,
+                                        color = self.fontcolor ,
+                                        background = self.backgroundcolor)
+
+        if reload_all :
+            self.reload_areas ()
+
+## end RemoteContainer ##
 
 #-------------------------------------------------------------------------------
 class RemoteTemplate (RemoteArea) :
@@ -483,17 +513,15 @@ class RemoteDisplay (TraceDisplay) :
         self.page_count += 1
     def configure (self, area) :
         #print ("area:", area)
-        #self.initialize_area (parent, area)
         if "areas" not in area :
             area ["areas"] = []
         area_obj = None
         if "type" not in area :
             area ["type"] = "container"
-        if area ["type"] in self.area_types :
-            area_obj = self.area_types [area ["type"]] (self, area)
-        else :
+        if area ["type"] not in self.area_types :
             print ("Unknown area type:", area["type"])
-            area_obj = RemoteContainer (self, area)
+            area ["type"] = "container"
+        area_obj = self.area_types [area ["type"]] (self, area)
         if area_obj is None :
             return None
         if "area_id" in area :
@@ -619,6 +647,8 @@ class RemoteDisplay (TraceDisplay) :
         return self.font_color_default
     def get_background_color_default (self) :
         return self.background_color_default
+    def get_color_by_name (self, color_name) :
+        return self.color_names[color_name]
     
 ## end RemoteDisplay ##
 
@@ -648,7 +678,6 @@ RST = 14
 
 if True :
     disp = RemoteDisplay (
-                        trace_output = False ,
                         #trace_methods = ["image"] ,
                         #config_file = "testtitle.json" ,
                         #---- SPI parameters
@@ -764,8 +793,8 @@ nixie_img = {
 disp.setup_config_file ("testtitle.json")
 disp.setup_config_file ("testconfig.json")
 disp.setup_config_file ("testeoj.json")
-disp.show_area ("screen")
-sys.exit()
+#disp.show_area ("screen")
+#sys.exit()
 
 #sys.exit()
 
@@ -834,17 +863,13 @@ def display_nixie (num, nixie_container) :
         digit_idx += 1
 
 disp.update_area (area = "switchpage", page_id = "testtitle")
+#sys.exit()
 time.sleep (2)
 disp.update_area (area = "switchpage", page_id = "testconfig")
-#time.sleep (2)
-print ("show_areas ####################")
-#disp.show_area (area_id = "LampRow", show_all = False)
-disp.show_area ()
-#time.sleep (5)
-#sys.exit()
+time.sleep (2)
 
 start_ms = time.ticks_ms ()
-for i in range (0,10) :
+for i in range (0,1) :
     time.sleep (2)
     print ("iteration #################################################")
     ticks = disp.number_justify (str(time.ticks_diff (time.ticks_ms(), start_ms)))
@@ -862,9 +887,10 @@ for i in range (0,10) :
     #disp.page_by_index (i % 2)
 #print (disp.get_trace_stats ())
 time.sleep (5)
+print ("testeoj")
 disp.update_area (area = "switchpage", page_id = "testeoj")
 #disp.page_by_name ("testeoj")
-#sys.exit()
+sys.exit()
 
 time.sleep (2)
 disp.screen_off ()
