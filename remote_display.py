@@ -24,6 +24,7 @@
 ################################################################################
 
 import sys
+import gc
 import time
 import random
 import re
@@ -32,11 +33,11 @@ from machine import Pin, SPI  # type: ignore
 
 #from xglcd_font import XglcdFont
 
-import ujson
+import ujson as json
 
 #from xglcd_font import XglcdFont
 #from ili9341 import Display
-#from ili9341_display import ILI9341Display
+from ili9341_display import ILI9341Display
 from trace_display import TraceDisplay
 
 #-------------------------------------------------------------------------------
@@ -132,6 +133,8 @@ class RemoteArea :
         self.ymin = self.vpos + offsets
         self.xmax = (self.xmin + self.xlen) - 1
         self.ymax = (self.ymin + self.ylen) - 1
+        self.xmid = self. xmin + round (self.xlen / 2)
+        self.ymid = self. ymin + round (self.ylen / 2)
 
     def add_area (self, area) :
         if area is not None :
@@ -228,13 +231,13 @@ class RemoteText (RemoteArea) :
                   area_config) :
         super().__init__ (remote_display, area_config)
         self.text = ""
-        if "value" in area_config :
-            self.text = area_config ["value"]
+        if "text" in area_config :
+            self.text = area_config ["text"]
         self.text_current = self.text
     def update (self, **kwargs) :
-        if "value" not in kwargs :
+        if "text" not in kwargs :
             return
-        self.text_current = kwargs ["value"]
+        self.text_current = kwargs ["text"]
         self.reload (reload_all = False)
     def reload (self, reload_all = True) :
         if not self.page_is_active() :
@@ -289,8 +292,8 @@ class RemoteLamp (RemoteArea) :
                 lamp["textcolor"] = super().convert_rgb (*color["textcolorrgb"])
             elif "textcolorname" in color :
                 lamp["textcolor"] = self.remote_display.get_color_name (color["textcolorname"])
-            if "value" in color :
-                lamp["text"] = color ["value"]
+            if "text" in color :
+                lamp["text"] = color ["text"]
             #print ("====> out", color)
             self.lamp_by_idx.append (lamp)
             #print (color)
@@ -353,6 +356,520 @@ class RemoteLamp (RemoteArea) :
 
 ## end RemoteLamp ##
 
+
+class Remote7Segment (RemoteArea) :
+    def __init__ (self,
+                  remote_display,
+                  area_config) :
+        #print (__class__)
+        super().__init__ (remote_display, area_config)
+        self.digit_size = "S"
+        self.v_segment_length = 4
+        self.h_segment_length = 4 
+        self.segment_width = 2
+        self.spacing = 1
+        #self.color = remote_display.color_by_name ("WHITE")
+        self.bold = False
+        self.text_current = ""
+        if "text" in area_config :
+            self.text_current = area_config ["text"]
+        self.set_parameters (**area_config)
+        #self.set_parameters  (digit_size="S" ,
+                              #v_segment_length=v_segment_length ,
+                              #h_segment_length=h_segment_length ,
+                              #segment_width=segment_width ,
+                              #spacing=spacing ,
+                              #bold=bold ,
+                              #color=color)
+        #---- char/digit width
+        self.char_wid = self.segment_wid \
+                        + self.h_segment_len \
+                        + self.segment_wid \
+                        + self.spacing
+        #---- char/digit height
+        self.char_height = self.segment_wid \
+                        + self.v_segment_len \
+                        + self.segment_wid \
+                        + self.v_segment_len \
+                        + self.segment_wid \
+                        + self.spacing
+        self.width_mid = round ((self.char_wid - self.spacing) / 2)
+        self.height_mid = round ((self.char_height - self.spacing) / 2)
+        self.segment_chars = {
+            "0" : {
+                "handler" : self.zero_seg
+                } ,
+            "1" : {
+                "handler" : self.one_seg
+                } ,
+            "2" : {
+                "handler" : self.two_seg
+                } ,
+            "3" : {
+                "handler" : self.three_seg
+                } ,
+            "4" : {
+                "handler" : self.four_seg
+                } ,
+            "5" : {
+                "handler" : self.five_seg
+                } ,
+            "6" : {
+                "handler" : self.six_seg
+                } ,
+            "7" : {
+                "handler" : self.seven_seg
+                } ,
+            "8" : {
+                "handler" : self.eight_seg
+                } ,
+            "9" : {
+                "handler" : self.nine_seg
+                } ,
+            "." : {
+                "handler" : self.decimal_point_seg
+                } ,
+            "+" : {
+                "handler" : self.plus_seg
+                } ,
+            "-" : {
+                "handler" : self.minus_seg
+                } ,
+            ":" : {
+                "handler" : self.colon_seg
+                } ,
+            "?" : {
+                "handler" : self.question_seg
+                } ,
+            " " : {
+                "handler" : self.space_seg
+                } ,
+            "A" : {
+                "handler" : self.a_seg
+                } ,
+            "a" : {
+                "handler" : self.a_seg
+                } ,
+            "B" : {
+                "handler" : self.b_seg
+                } ,
+            "b" : {
+                "handler" : self.b_seg
+                } ,
+            "C" : {
+                "handler" : self.c_seg
+                } ,
+            "c" : {
+                "handler" : self.c_seg
+                } ,
+            "D" : {
+                "handler" : self.d_seg
+                } ,
+            "d" : {
+                "handler" : self.d_seg
+                } ,
+            "E" : {
+                "handler" : self.e_seg
+                } ,
+            "e" : {
+                "handler" : self.e_seg
+                } ,
+            "F" : {
+                "handler" : self.f_seg
+                } ,
+            "f" : {
+                "handler" : self.f_seg
+                }
+            }
+    
+    def set_parameters (self, **kwargs) :
+                        #pixel_display=None ,
+                        #digit_size=None ,
+                        #v_segment_length=None ,
+                        #h_segment_length=None ,
+                        #segment_width=None ,
+                        #spacing=None ,
+                        #bold=None ,
+                        #color=None) :
+        if "digit_size" in kwargs :
+            #print ("digit_size:",kwargs ["digit_size"])
+            if kwargs ["digit_size"] == "S" :        # Small digits
+                self.v_segment_len = 4
+                self.h_segment_len = 4
+                self.segment_wid = 2
+            elif kwargs ["digit_size"] == "M" :      # Medium digits
+                self.v_segment_len = 11
+                self.h_segment_len = 11
+                self.segment_wid = 3
+                self.spacing = 2
+            elif kwargs ["digit_size"] == "L" :      # Large digits
+                self.v_segment_len = 22
+                self.h_segment_len = 22
+                self.segment_wid = 6
+                self.spacing = 2
+        if "bold" in kwargs :              # Bold (T/F)
+            self.bold = kwargs ["bold"]
+
+        #---- sign segment length
+        self.sign_seg_len = max (self.v_segment_len,
+                                self.h_segment_len)
+        if self.sign_seg_len < 5 :
+            self.sign_seg_len = 5
+        elif self.sign_seg_len % 2 != 0 :
+            self.sign_seg_len -= 1
+
+# end set_parameters #
+
+    def update (self, **kwargs) :
+        if "text" not in kwargs :
+            return
+        self.text_current = kwargs ["text"]
+        self.reload (reload_all = False)
+    def reload (self, reload_all = True) :
+        if not self.page_is_active() :
+            return
+        #print ("active")
+        #print ("reload text:", self.text_current)
+        if reload_all :
+            self.reload_background ()
+        self.remote_display.rectangle_fill (x = self.xmin ,
+                                            w = self.xlen ,
+                                            y = self.ymin ,
+                                            h = self.ylen,
+                                            color=self.backgroundcolor)
+        self.display_string (xpos = self.xmin ,
+                             ypos = self.ymin ,
+                             chars = self.text_current)
+        if reload_all :
+            self.reload_areas ()
+
+    #----------------------------------------------------------------------------------
+    # Segment identifiers:
+    # bold=False    bold=True
+    #  xxTOPxx      xxxTOPxxx
+    # x       x     x       x
+    # U       U     U       U
+    # L       R     L       R
+    # x       x     x       x
+    #  xxMIDxx      xxxMIDxxx
+    # x       x     x       x
+    # L       L     L       L
+    # L       R     L       R
+    # x       x     x       x
+    #  xxBOTxx      xxxBOTxxx
+    #
+    #------------------------------
+    def TOP_seg (self, xpos_in, ypos_in) :
+        if self.bold :
+            xpos = xpos_in
+            xlen = self.segment_wid + self.h_segment_len + self.segment_wid
+        else :
+            xpos = xpos_in + self.segment_wid
+            xlen = self.h_segment_len
+        ypos = ypos_in
+        self.remote_display.rectangle_fill (hpos = xpos ,
+                                            hlen = xlen ,
+                                            vpos = ypos ,
+                                            vlen = self.segment_wid ,
+                                            color = self.fontcolor)
+    #------------------------------------
+    def UL_seg (self, xpos_in, ypos_in) :
+        xpos = xpos_in
+        if self.bold :
+            ypos = ypos_in
+            ylen = self.segment_wid + self.v_segment_len + self.segment_wid
+        else :
+            ypos = ypos_in + self.segment_wid
+            ylen = self.v_segment_len
+        self.remote_display.rectangle_fill (hpos = xpos ,
+                                            hlen = self.segment_wid ,
+                                            vpos = ypos ,
+                                            vlen = ylen ,
+                                            color = self.fontcolor)
+    #------------------------------------
+    def UR_seg (self, xpos_in, ypos_in) :
+        xpos = xpos_in + self.segment_wid + self.h_segment_len
+        if self.bold :
+            ypos = ypos_in
+            ylen = self.segment_wid + self.v_segment_len + self.segment_wid
+        else :
+            ypos = ypos_in + self.segment_wid
+            ylen = self.v_segment_len
+        self.remote_display.rectangle_fill (hpos = xpos ,
+                                            hlen = self.segment_wid ,
+                                            vpos = ypos ,
+                                            vlen = ylen ,
+                                            color = self.fontcolor)
+    #-------------------------------------
+    def MID_seg (self, xpos_in, ypos_in) :
+        if self.bold :
+            xpos = xpos_in
+            xlen = self.segment_wid + self.h_segment_len + self.segment_wid
+        else :
+            xpos = xpos_in + self.segment_wid
+            xlen = self.h_segment_len
+        ypos = ypos_in + self.segment_wid + self.v_segment_len
+        self.remote_display.rectangle_fill (hpos = xpos ,
+                                            hlen = xlen ,
+                                            vpos = ypos ,
+                                            vlen = self.segment_wid ,
+                                            color = self.fontcolor)
+    def LL_seg (self, xpos_in, ypos_in) :
+        xpos = xpos_in
+        if self.bold :
+            ypos = ypos_in + self.segment_wid + self.v_segment_len
+            ylen = self.segment_wid + self.v_segment_len + self.segment_wid
+        else :
+            ypos = ypos_in + self.segment_wid + self.v_segment_len + self.segment_wid
+            ylen = self.v_segment_len
+        self.remote_display.rectangle_fill (hpos = xpos ,
+                                            hlen = self.segment_wid ,
+                                            vpos = ypos ,
+                                            vlen = ylen ,
+                                            color = self.fontcolor)
+    def LR_seg (self, xpos_in, ypos_in) :
+        xpos = xpos_in + self.segment_wid + self.h_segment_len
+        if self.bold :
+            ypos = ypos_in + self.segment_wid + self.v_segment_len
+            ylen = self.segment_wid + self.v_segment_len + self.segment_wid
+        else :
+            ypos = ypos_in + self.segment_wid + self.v_segment_len + self.segment_wid
+            ylen = self.v_segment_len
+        self.remote_display.rectangle_fill (hpos = xpos ,
+                                            hlen = self.segment_wid ,
+                                            vpos = ypos ,
+                                            vlen = ylen ,
+                                            color = self.fontcolor)
+    #-----------------------------------
+    def BOT_seg (self, xpos_in, ypos_in) :
+        if self.bold :
+            xpos = xpos_in
+            xlen = self.segment_wid + self.h_segment_len + self.segment_wid
+        else :
+            xpos = xpos_in + self.segment_wid
+            xlen = self.h_segment_len
+        ypos = ypos_in \
+                + self.segment_wid \
+                + self.v_segment_len \
+                + self.segment_wid \
+                + self.v_segment_len
+        self.remote_display.rectangle_fill (hpos = xpos ,
+                                            hlen = xlen ,
+                                            vpos = ypos ,
+                                            vlen = self.segment_wid ,
+                                            color = self.fontcolor)
+    #---------------------------------------------------------------------------------
+    def nine_seg (self, xpos, ypos) :
+        self.TOP_seg (xpos, ypos)
+        self.UL_seg (xpos, ypos)
+        self.UR_seg (xpos, ypos)
+        self.MID_seg (xpos, ypos)
+        self.LR_seg (xpos, ypos)
+        self.BOT_seg (xpos, ypos)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def eight_seg (self, xpos, ypos) :
+        self.TOP_seg (xpos, ypos)
+        self.UL_seg (xpos, ypos)
+        self.UR_seg (xpos, ypos)
+        self.MID_seg (xpos, ypos)
+        self.LL_seg (xpos, ypos)
+        self.LR_seg (xpos, ypos)
+        self.BOT_seg (xpos, ypos)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def seven_seg (self, xpos, ypos) :
+        self.TOP_seg (xpos, ypos)
+        self.UR_seg (xpos, ypos)
+        self.LR_seg (xpos, ypos)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def six_seg (self, xpos, ypos) :
+        self.TOP_seg (xpos, ypos)
+        self.UL_seg (xpos, ypos)
+        self.MID_seg (xpos, ypos)
+        self.LL_seg (xpos, ypos)
+        self.LR_seg (xpos, ypos)
+        self.BOT_seg (xpos, ypos)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def five_seg (self, xpos, ypos) :
+        self.TOP_seg (xpos, ypos)
+        self.UL_seg (xpos, ypos)
+        self.MID_seg (xpos, ypos)
+        self.LR_seg (xpos, ypos)
+        self.BOT_seg (xpos, ypos)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def four_seg (self, xpos, ypos) :
+        self.UL_seg (xpos, ypos)
+        self.UR_seg (xpos, ypos)
+        self.MID_seg (xpos, ypos)
+        self.LR_seg (xpos, ypos)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def three_seg (self, xpos, ypos) :
+        self.TOP_seg (xpos, ypos)
+        self.UR_seg (xpos, ypos)
+        self.MID_seg (xpos, ypos)
+        self.LR_seg (xpos, ypos)
+        self.BOT_seg (xpos, ypos)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def two_seg (self, xpos, ypos) :
+        self.TOP_seg (xpos, ypos)
+        self.UR_seg (xpos, ypos)
+        self.MID_seg (xpos, ypos)
+        self.LL_seg (xpos, ypos)
+        self.BOT_seg (xpos, ypos)
+        return self.char_wid
+    #-----------------------------------------------
+    def one_seg (self, xpos, ypos) :
+        self.UR_seg (xpos, ypos)
+        self.LR_seg (xpos, ypos)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def zero_seg (self, xpos, ypos) :
+        self.TOP_seg (xpos, ypos)
+        self.UL_seg (xpos, ypos)
+        self.UR_seg (xpos, ypos)
+        self.LL_seg (xpos, ypos)
+        self.LR_seg (xpos, ypos)
+        self.BOT_seg (xpos, ypos)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def a_seg (self, xpos, ypos) :
+        self.TOP_seg (xpos, ypos)
+        self.UL_seg (xpos, ypos)
+        self.UR_seg (xpos, ypos)
+        self.MID_seg (xpos, ypos)
+        self.LL_seg (xpos, ypos)
+        self.LR_seg (xpos, ypos)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def b_seg (self, xpos, ypos) :
+        self.UL_seg (xpos, ypos)
+        self.MID_seg (xpos, ypos)
+        self.LL_seg (xpos, ypos)
+        self.LR_seg (xpos, ypos)
+        self.BOT_seg (xpos, ypos)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def c_seg (self, xpos, ypos) :
+        self.TOP_seg (xpos, ypos)
+        self.UL_seg (xpos, ypos)
+        self.LL_seg (xpos, ypos)
+        self.BOT_seg (xpos, ypos)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def d_seg (self, xpos, ypos) :
+        self.UR_seg (xpos, ypos)
+        self.MID_seg (xpos, ypos)
+        self.LL_seg (xpos, ypos)
+        self.LR_seg (xpos, ypos)
+        self.BOT_seg (xpos, ypos)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def e_seg (self, xpos, ypos) :
+        self.TOP_seg (xpos, ypos)
+        self.UL_seg (xpos, ypos)
+        self.MID_seg (xpos,ypos)
+        self.LL_seg (xpos, ypos)
+        self.BOT_seg (xpos, ypos)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def f_seg (self, xpos, ypos) :
+        self.TOP_seg (xpos, ypos)
+        self.UL_seg (xpos, ypos)
+        self.MID_seg (xpos,ypos)
+        self.LL_seg (xpos, ypos)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def question_seg (self, xpos, ypos) :
+        self.TOP_seg (xpos, ypos)
+        self.UR_seg (xpos, ypos)
+        self.MID_seg (xpos,ypos)
+        self.LL_seg (xpos, ypos)
+        return self.char_wid
+
+    #---------------------------------------------------------------------------------
+    def decimal_point_seg (self, xpos, ypos) :
+        vxpos = xpos + (self.width_mid - (self.segment_wid // 2))
+        vypos = ypos + self.v_segment_len \
+                                    + self.v_segment_len \
+                                    + self.segment_wid \
+                                    + self.segment_wid
+        self.remote_display.rectangle_fill (hpos = vxpos ,
+                                            hlen = self.segment_wid ,
+                                            vpos = vypos ,
+                                            vlen = self.segment_wid ,
+                                            color = self.fontcolor)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def colon_seg (self, xpos, ypos) :
+        vxpos = xpos + (self.width_mid - (self.segment_wid // 2))
+        vypos = ypos + self.v_segment_len \
+                                    + self.segment_wid \
+                                    + self.segment_wid
+        self.remote_display.rectangle_fill (hpos = vxpos ,
+                                            hlen = self.segment_wid ,
+                                            vpos = vypos ,
+                                            vlen = self.segment_wid ,
+                                            color = self.fontcolor)
+        vypos += + self.v_segment_len
+        self.remote_display.rectangle_fill (hpos = vxpos ,
+                                            hlen = self.segment_wid ,
+                                            vpos = vypos ,
+                                            vlen = self.segment_wid ,
+                                            color = self.fontcolor)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def minus_seg (self, xpos_in, ypos_in) :
+        xpos = xpos_in + self.segment_wid
+        xlen = self.h_segment_len
+        ypos = ypos_in + self.height_mid - (self.segment_wid // 2)
+        self.remote_display.rectangle_fill (hpos = xpos ,
+                                            hlen = xlen ,
+                                            vpos = ypos ,
+                                            vlen = self.segment_wid ,
+                                            color = self.fontcolor)
+        return self.char_wid
+    #---------------------------------------------------------------------------------
+    def plus_seg (self, xpos, ypos) :
+        self.minus_seg (xpos, ypos)
+        vxpos = xpos + (self.width_mid - (self.segment_wid // 2))
+        vypos = (ypos + self.height_mid) - (self.h_segment_len // 2)
+        self.remote_display.rectangle_fill (hpos = vxpos ,
+                                            hlen = self.segment_wid ,
+                                            vpos = vypos ,
+                                            vlen = self.h_segment_len ,
+                                            color = self.fontcolor)
+        return self.char_wid
+
+    #---------------------------------------------------------------------------------
+    def space_seg (self, xpos, ypos) :
+        return self.char_wid
+
+    #---------------------------------------------------------------------------------
+    def get_character_width (self) :
+        return self.char_wid
+    def get_character_height (self) :
+        return self.char_height
+    #-----------------------------
+    def display_character (self, xpos, ypos, char) :
+        #print ("'" + char + "'")
+        if char in self.segment_chars :
+            return self.segment_chars[char]["handler"] (xpos, ypos)
+        else :
+            return self.question_seg (xpos, ypos)
+    def display_string (self, xpos, ypos, chars) :
+        x_display = xpos
+        for char in chars :
+            x_display += self.display_character (x_display, ypos, char)
+        return x_display
+
+# end Remote7Segment #
+
 #-------------------------------------------------------------------------------
 class RemoteContainer (RemoteArea) :
     def __init__ (self,
@@ -402,7 +919,7 @@ class RemoteTemplate (RemoteArea) :
         #
         #---- Set area parameters to initial state
         #
-        self.reload ()
+        self.reload (reload_all = True)
         #
     def reload (self, reload_all = True) :
         if not self.page_is_active() :
@@ -434,8 +951,8 @@ class RemoteSwitchPage () :
 #-------------------------------------------------------------------------------
 # RemoteDisplay
 #-------------------------------------------------------------------------------
-class RemoteDisplay (TraceDisplay) :
-#class RemoteDisplay (ILI9341Display) :
+#class RemoteDisplay (TraceDisplay) :
+class RemoteDisplay (ILI9341Display) :
     def __init__ (self, **kwargs) :
         #print ("RemoteDisplay __init__:", kwargs)
         super ().__init__ (**kwargs)
@@ -487,12 +1004,12 @@ class RemoteDisplay (TraceDisplay) :
 
     def setup_config_file (self, file_name) :
         config_dict = None
-        #try :
-        if True :
+        try :
+        #if True :
             with open(file_name, 'r') as config_file:
-                config_dict = ujson.loads(config_file.read())
-        #except Exception :
-        else :
+                config_dict = json.loads(config_file.read())
+        except :
+        #else :
             print ("Configuration file error:", file_name)
             return
         self.setup_config_dict (config_dict)
@@ -511,6 +1028,7 @@ class RemoteDisplay (TraceDisplay) :
         if self.page_count <= 0 :
             self.page = self.configuration_page
         self.page_count += 1
+        gc.collect ()
     def configure (self, area) :
         #print ("area:", area)
         if "areas" not in area :
@@ -554,10 +1072,12 @@ class RemoteDisplay (TraceDisplay) :
         #
         if ramdisk_file_name is not None :
             try :
-                with open (file_name, "r") as disk_file :
-                    with open (ramdisk_file_name, "w") as ramdisk_file :
+            #if True :
+                with open (file_name, "rb") as disk_file :
+                    with open (ramdisk_file_name, "wb") as ramdisk_file :
                         ramdisk_file.write (disk_file.read())
                 image_file = ramdisk_file_name
+            #else :
             except Exception :
                 print ("copy to ramdisk failed:", file_name)
         #
@@ -641,6 +1161,8 @@ class RemoteDisplay (TraceDisplay) :
             formatted = formatted [(flen - rlen)]
         return formatted
 
+    def get_font (self, font_id) :
+        return self.fonts[font_id]
     def get_font_default (self) :
         return self.font_default
     def get_font_color_default (self) :
@@ -674,11 +1196,11 @@ DC = 15
 CS = 17
 RST = 14
 
-#machine.freq(270000000)
+machine.freq(270000000)
 
 if True :
     disp = RemoteDisplay (
-                        #trace_methods = ["image"] ,
+                        trace_methods = ["image"] ,
                         #config_file = "testtitle.json" ,
                         #---- SPI parameters
                         spi_id = SPI_ID ,
@@ -720,6 +1242,7 @@ else :
     disp = RemoteDisplay (display_object = display)
 
 disp.add_area_type ("template", RemoteTemplate)
+disp.add_area_type ("7segment", Remote7Segment)
 disp.add_update ("switchpage", RemoteSwitchPage)
 
 #
@@ -733,6 +1256,7 @@ vlen = 25
 disp.add_font ('default', 'fonts/Unispace12x24.c', 12, 24)
 disp.add_font ('bally7x9', 'fonts/Bally7x9.c', 7, 9)
 
+
 disp.add_image ('nixie0', 'images/nixie0.raw', iwidth, iheight)
 disp.add_image ('nixie1', 'images/nixie1.raw', iwidth, iheight)
 disp.add_image ('nixie2', 'images/nixie2.raw', iwidth, iheight)
@@ -745,6 +1269,21 @@ disp.add_image ('nixie8', 'images/nixie8.raw', iwidth, iheight)
 disp.add_image ('nixie9', 'images/nixie9.raw', iwidth, iheight)
 disp.add_image ('nixieoff', 'images/nixieoff.raw', iwidth, iheight)
 disp.add_image ('nixieminus', 'images/nixieminus.raw', iwidth, iheight)
+'''
+disp.add_image ('nixie0', 'images/nixie0.raw', iwidth, iheight, ramdisk_file_name="ramdisk/nixie0.raw")
+disp.add_image ('nixie1', 'images/nixie1.raw', iwidth, iheight, ramdisk_file_name="ramdisk/nixie1.raw")
+disp.add_image ('nixie2', 'images/nixie2.raw', iwidth, iheight, ramdisk_file_name="ramdisk/nixie2.raw")
+disp.add_image ('nixie3', 'images/nixie3.raw', iwidth, iheight, ramdisk_file_name="ramdisk/nixie3.raw")
+disp.add_image ('nixie4', 'images/nixie4.raw', iwidth, iheight, ramdisk_file_name="ramdisk/nixie4.raw")
+disp.add_image ('nixie5', 'images/nixie5.raw', iwidth, iheight, ramdisk_file_name="ramdisk/nixie5.raw")
+disp.add_image ('nixie6', 'images/nixie6.raw', iwidth, iheight, ramdisk_file_name="ramdisk/nixie6.raw")
+disp.add_image ('nixie7', 'images/nixie7.raw', iwidth, iheight, ramdisk_file_name="ramdisk/nixie7.raw")
+disp.add_image ('nixie8', 'images/nixie8.raw', iwidth, iheight, ramdisk_file_name="ramdisk/nixie8.raw")
+disp.add_image ('nixie9', 'images/nixie9.raw', iwidth, iheight, ramdisk_file_name="ramdisk/nixie9.raw")
+disp.add_image ('nixieoff', 'images/nixieoff.raw', iwidth, iheight, ramdisk_file_name="ramdisk/nixieoff.raw")
+disp.add_image ('nixieminus', 'images/nixieminus.raw', iwidth, iheight, ramdisk_file_name="ramdisk/nixieminus.raw")
+'''
+
 # nixie with decimal point
 disp.add_image ('nixie0dp', 'images/nixie0dp.raw', iwidth, iheight)
 disp.add_image ('nixie1dp', 'images/nixie1dp.raw', iwidth, iheight)
@@ -838,8 +1377,8 @@ fortunes = [
 
 #disp.screen_reload ()
 
-disp.update_area (area = "UpperRight", value = "Test")
-disp.update_area (area = "UpperLeft", value = "Upper Left")
+disp.update_area (area = "UpperRight", text = "Test")
+disp.update_area (area = "UpperLeft", text = "Upper Left")
 
 def display_nixie (num, nixie_container) :
     nixie_digits = disp.get_child_list (nixie_container)
@@ -862,22 +1401,30 @@ def display_nixie (num, nixie_container) :
                         image_id = image_group [str(formatted[digit_idx])])
         digit_idx += 1
 
+print ("mem_free:",gc.mem_free())
+gc.collect()
+print ("mem_free:",gc.mem_free())
+
 disp.update_area (area = "switchpage", page_id = "testtitle")
+time.sleep (5)
+disp.update_area (area = "7seg", text = "  1024.48")
+time.sleep (5)
+disp.update_area (area = "7seg", text = "   -24.84")
 #sys.exit()
 time.sleep (2)
 disp.update_area (area = "switchpage", page_id = "testconfig")
 time.sleep (2)
 
 start_ms = time.ticks_ms ()
-for i in range (0,1) :
-    time.sleep (2)
+for i in range (0,10) :
+    time.sleep (5)
     print ("iteration #################################################")
     ticks = disp.number_justify (str(time.ticks_diff (time.ticks_ms(), start_ms)))
-    disp.update_area (area = "UpperRight", value = ticks)
-                      #value = disp.number_justify (str(time.ticks_diff (time.ticks_ms(), start_ms))))
+    disp.update_area (area = "UpperRight", text = ticks)
+                      #text = disp.number_justify (str(time.ticks_diff (time.ticks_ms(), start_ms))))
     display_nixie (round (float (ticks) / 1000, 1), "nix")
     disp.update_area (area = "Fortune",
-                      value = fortunes [random.randrange (0,len(fortunes))])
+                      text = fortunes [random.randrange (0,len(fortunes))])
     disp.update_area (area = "Lamp1",
                       lamp_index = (i % 2))
     disp.update_area (area = "WarpDrive",
@@ -890,12 +1437,14 @@ time.sleep (5)
 print ("testeoj")
 disp.update_area (area = "switchpage", page_id = "testeoj")
 #disp.page_by_name ("testeoj")
-sys.exit()
 
 time.sleep (2)
 disp.screen_off ()
 time.sleep (2)
 disp.screen_on ()
 #time.sleep (2)
+try :
+    print (disp.get_trace_stats ())
+except :
+    pass
 
-#print (disp.get_trace_stats ())
