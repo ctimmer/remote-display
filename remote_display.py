@@ -36,10 +36,123 @@ from machine import Pin, SPI  # type: ignore
 import ujson as json
 
 #from xglcd_font import XglcdFont
-#from ili9341 import Display
+from ili9341 import Display
 from ili9341_display import ILI9341Display
-from trace_display import TraceDisplay
+#from trace_display import TraceDisplay
 
+#-------------------------------------------------------------------------------
+# UpdateQueue
+#-------------------------------------------------------------------------------
+class UpdateQueue :
+    def __init__ (self, size = 20) :
+        self.queue_size = size
+        queue_entry = {
+            "active" : False ,
+            "next" : None ,
+            "data" : None
+            }
+        self.circ_queue = [None for element in range(size)]
+        print (len (self.circ_queue))
+        #---- Initialize queue entries
+        for idx in range (0, size) :
+            self.circ_queue[idx] = queue_entry.copy ()
+            if idx > 0 :
+                self.circ_queue [idx - 1]["next"] = self.circ_queue [idx]
+        self.circ_queue [size - 1]["next"] = self.circ_queue [0] # fix last
+        self.current_entry = self.circ_queue [0]
+        self.data_entry = self.circ_queue [0]
+    def push_queue (self, data) :
+        if self.current_entry ["active"] == True :
+            return True
+        self.current_entry ["active"] = True
+        self.current_entry ["data"] = data
+        self.current_entry = self.current_entry ["next"]
+        return False
+    def pop_queue (self, empty_return = None) :
+        if self.data_entry ["active"] != True :
+            return empty_return
+        data = self.data_entry ["data"]
+        self.data_entry ["active"] = False
+        self.data_entry = self.data_entry ["next"]
+        return data
+    def empty_queue (self) :
+        return not self.data_entry ["active"]
+    def full_queue (self) :
+        return self.current_entry ["active"]
+
+## end UpdateQueue ##
+
+'''
+q = UpdateQueue (size=3)
+print ("queue empty:", q.empty_queue ())
+print (q.push_queue ({"first" : "curt"}))
+print ("queue empty:", q.empty_queue ())
+print (q.push_queue ({"last" : "timm"}))
+print ("queue empty:", q.empty_queue ())
+print (q.push_queue ({"age" : "old"}))
+print ("queue empty:", q.empty_queue ())
+print (q.push_queue ({"state" : "Alaska"}))
+print ("queue empty:", q.empty_queue ())
+print (q.push_queue ({"fail" : "toomany"}))
+print ("queue empty:", q.empty_queue ())
+print (q.pop_queue ())
+print ("queue empty:", q.empty_queue ())
+print (q.pop_queue ())
+print ("queue empty:", q.empty_queue ())
+print (q.pop_queue ())
+print ("queue empty:", q.empty_queue ())
+print (q.pop_queue ())
+print ("queue empty:", q.empty_queue ())
+print (q.pop_queue ())
+print ("queue empty:", q.empty_queue ())
+print (q.pop_queue ())
+print ("queue empty:", q.empty_queue ())
+print (q.push_queue ({"state" : "Alaska"}))
+print ("queue empty:", q.empty_queue ())
+print (q.pop_queue ())
+print ("queue empty:", q.empty_queue ())
+print (q.pop_queue ())
+print ("queue empty:", q.empty_queue ())
+sys.exit ()
+'''
+
+#-------------------------------------------------------------------------------
+# UpdateUDPServer
+#-------------------------------------------------------------------------------
+import select as select
+import socket as socket
+class UpdateUDPServer :
+    def __init__ (self ,
+                  update_display ,
+                  update_queue ,
+                  port = 5010
+                  ) :
+        self.update_display = update_display
+        self.update_queue = update_queue
+        self.port = port
+        self.udp_socket = socket.socket (socket.AF_INET, socket.SOCK_DGRAM)
+        self.udp_socket.setblocking (False)
+        self.udp_socket.bind (('0.0.0.0', self.port))
+        #self.udp_socket.close ()
+
+    def start_server (self) :
+        buf = ""
+        p = select.poll()
+        p.register(self.udp_socket, select.POLLIN)
+        to =  5000 #self.polltimeout
+        while True :
+            events = p.poll (to)
+            for s, flag in events:
+                 print('socket: %s\tflag: %s' % (s, flag))
+            if len (events) > 0 :
+                (buf, addr) = self.udp_socket.recvfrom(1500)
+                print (buf)
+
+## UpdateUDPServer ##
+
+#s = UpdateUDPServer (None, None)
+#s.start_server ()
+#sys.exit ()
 #-------------------------------------------------------------------------------
 # RemotePage
 #-------------------------------------------------------------------------------
@@ -82,7 +195,7 @@ class RemoteArea :
         self.backgroundwidth = 0
         self.backgroundcolor = remote_display.get_background_color_default ()
         self.font = remote_display.get_font_default()
-        self.fontcolor = remote_display.get_font_color_default()
+        self.textcolor = remote_display.get_font_color_default()
         self.show_border_color = self.remote_display.get_color_name ("WHITE")
         self.areas = []
         if "area_id" in area :
@@ -106,24 +219,24 @@ class RemoteArea :
             
         if "borderwidth" in area :
             self.borderwidth = area ["borderwidth"]
-        if "bordercolor" in area :
-            self.bordercolor = area ["bordercolor"]
+        if "bordercolorname" in area :
+            self.bordercolor = remote_display.get_color_by_name (area ["bordercolorname"])
+        if "bordercolorrbg" in area :
+            self.bordercolor = remote_display.convert_rgb (*area["bordercolorrgb"])
         if "paddingwidth" in area :
             self.paddingwidth = area ["paddingwidth"]
-        if "backgroundcolor" in area :
-            self.backgroundcolor = area["backgroundcolor"]
         elif "backgroundcolorrgb" in area :
             self.backgroundcolor = remote_display.convert_rgb (*area["backgroundcolorrgb"])
         elif "backgroundcolorname" in area :
             self.backgroundcolor = remote_display.get_color_by_name (area["backgroundcolorname"])
         if "font" in area :
             self.font = remote_display.get_font (area ["font"])
-        if "fontcolor" in area :
-            self.fontcolor = area ["fontcolor"]
-        elif "fontcolorrgb" in area :
-            self.fontcolor = remote_display.convert_rgb (*area["fontcolorrgb"])
-        elif "fontcolorname" in area :
-            self.fontcolor = remote_display.get_color_by_name (area["fontcolorname"])
+        if "textcolor" in area :
+            self.textcolor = area ["textcolor"]
+        elif "textcolorrgb" in area :
+            self.textcolor = remote_display.convert_rgb (*area["textcolorrgb"])
+        elif "textcolorname" in area :
+            self.textcolor = remote_display.get_color_by_name (area["textcolorname"])
 
         #---- Set field data position/lengths parameters
         offsets = self.borderwidth + self.paddingwidth
@@ -145,7 +258,34 @@ class RemoteArea :
         self.page.set_page_active (state)
 
     def reload_border (self) :
-        pass # need
+        if self.xmin == self.hpos :
+            return          # No border or padding
+        x = self.hpos
+        xlen = self.hlen
+        y = self.vpos
+        ylen = self.vlen
+        for i in range (self.borderwidth) :
+            if self.bordercolor is not None :
+                self.remote_display.rectangle (x = x ,
+                                                y = y ,
+                                                w = xlen ,
+                                                h = ylen ,
+                                                color = self.bordercolor)
+            x += 1
+            y += 1
+            xlen -= 2
+            ylen -= 2
+        for i in range (self.paddingwidth) :
+            if self.backgroundcolor is not None :
+                self.remote_display.rectangle (x = x ,
+                                                y = y ,
+                                                w = xlen ,
+                                                h = ylen ,
+                                                color = self.backgroundcolor)
+            x += 1
+            y += 1
+            xlen -= 2
+            ylen -= 2
     def reload_background (self) :
         self.reload_border ()
         if self.backgroundwidth > 0 :
@@ -234,6 +374,7 @@ class RemoteText (RemoteArea) :
         if "text" in area_config :
             self.text = area_config ["text"]
         self.text_current = self.text
+        self.show_border_color = remote_display.get_color_name ("LIME")
     def update (self, **kwargs) :
         if "text" not in kwargs :
             return
@@ -254,7 +395,7 @@ class RemoteText (RemoteArea) :
                                     y = self.ymin ,
                                     text = self.text_current,
                                   font = self.font ,
-                                  color = self.fontcolor ,
+                                  color = self.textcolor ,
                                   background = self.backgroundcolor)
         if reload_all :
             self.reload_areas ()
@@ -305,6 +446,7 @@ class RemoteLamp (RemoteArea) :
         self.lampcolor = self.lamp_by_name[self.lamp_id_current]["lampcolor"]
         self.textcolor = self.lamp_by_name[self.lamp_id_current]["textcolor"]
         self.text = self.lamp_by_name[self.lamp_id_current]["text"]
+        self.show_border_color = remote_display.get_color_name ("RED")
     def update (self, **kwargs) :
         #print (__class__, "Update", kwargs)
         lamp_id = ""
@@ -363,6 +505,7 @@ class Remote7Segment (RemoteArea) :
                   area_config) :
         #print (__class__)
         super().__init__ (remote_display, area_config)
+        self.show_border_color = remote_display.get_color_name ("TEAL")
         self.digit_size = "S"
         self.v_segment_length = 4
         self.h_segment_length = 4 
@@ -395,6 +538,30 @@ class Remote7Segment (RemoteArea) :
                         + self.spacing
         self.width_mid = round ((self.char_wid - self.spacing) / 2)
         self.height_mid = round ((self.char_height - self.spacing) / 2)
+        self.top_seg_bit = 0b00000001
+        self.mid_seg_bit = 0b00000010
+        self.bot_seg_bit = 0b00000100
+        self.ul_seg_bit  = 0b00001000
+        self.ur_seg_bit  = 0b00010000
+        self.ll_seg_bit  = 0b00100000
+        self.lr_seg_bit  = 0b01000000
+        self.zero_segs = self.top_seg_bit | self.ul_seg_bit | self.ur_seg_bit|self.ll_seg_bit|self.lr_seg_bit|self.bot_seg_bit
+        self.one_segs = self.ur_seg_bit | self.lr_seg_bit
+        self.two_segs = self.top_seg_bit | self.ur_seg_bit | self.mid_seg_bit | self.ll_seg_bit | self.bot_seg_bit
+        self.three_segs = self.top_seg_bit | self.ur_seg_bit | self.mid_seg_bit | self.lr_seg_bit | self.bot_seg_bit
+        self.four_segs = self.ul_seg_bit | self.ur_seg_bit | self.mid_seg_bit | self.lr_seg_bit
+        self.five_segs = self.top_seg_bit | self.ul_seg_bit | self.mid_seg_bit | self.lr_seg_bit | self.bot_seg_bit
+        self.six_segs = self.top_seg_bit | self.ul_seg_bit | self.mid_seg_bit | self.ll_seg_bit | self.lr_seg_bit | self.bot_seg_bit
+        self.seven_segs = self.top_seg_bit | self.ur_seg_bit | self.lr_seg_bit
+        self.eight_segs = self.top_seg_bit | self.ul_seg_bit | self.ur_seg_bit|self.mid_seg_bit|self.ll_seg_bit|self.lr_seg_bit|self.bot_seg_bit
+        self.nine_segs = self.top_seg_bit | self.ul_seg_bit | self.ur_seg_bit | self.mid_seg_bit | self.lr_seg_bit
+        self.a_segs = self.top_seg_bit | self.ul_seg_bit | self.ur_seg_bit|self.ll_seg_bit|self.lr_seg_bit | self.mid_seg_bit
+        self.b_segs = self.ul_seg_bit | self.ll_seg_bit|self.lr_seg_bit|self.mid_seg_bit |self.bot_seg_bit
+        self.c_segs = self.top_seg_bit | self.ul_seg_bit | self.ll_seg_bit|self.bot_seg_bit
+        self.d_segs = self.ur_seg_bit|self.ll_seg_bit|self.lr_seg_bit|self.mid_seg_bit|self.bot_seg_bit
+        self.e_segs = self.top_seg_bit | self.ul_seg_bit |self.mid_seg_bit|self.ll_seg_bit|self.bot_seg_bit
+        self.f_segs = self.top_seg_bit | self.ul_seg_bit | self.mid_seg_bit|self.ll_seg_bit
+        self.question_segs = self.top_seg_bit | self.ur_seg_bit|self.mid_seg_bit|self.ll_seg_bit
         self.segment_chars = {
             "0" : {
                 "handler" : self.zero_seg
@@ -493,19 +660,31 @@ class Remote7Segment (RemoteArea) :
                         #color=None) :
         if "digit_size" in kwargs :
             #print ("digit_size:",kwargs ["digit_size"])
-            if kwargs ["digit_size"] == "S" :        # Small digits
+            digit_size = kwargs ["digit_size"].upper() + "  "
+            if digit_size[0:1] == "S" :        # Small digits
                 self.v_segment_len = 4
-                self.h_segment_len = 4
+                if digit_size[1:2] == "N" :
+                    self.h_segment_len = 3
+                else :
+                    self.h_segment_len = 4
                 self.segment_wid = 2
-            elif kwargs ["digit_size"] == "M" :      # Medium digits
-                self.v_segment_len = 11
-                self.h_segment_len = 11
-                self.segment_wid = 3
+            elif digit_size[0:1] == "M" :      # Medium digits
+                self.v_segment_len = 10
+                if digit_size[1:2] == "N" :
+                    self.h_segment_len = 6
+                    self.segment_wid = 3
+                else :
+                    self.h_segment_len = 10
+                    self.segment_wid = 4
                 self.spacing = 2
-            elif kwargs ["digit_size"] == "L" :      # Large digits
-                self.v_segment_len = 22
-                self.h_segment_len = 22
-                self.segment_wid = 6
+            elif digit_size[0:1] == "L" :      # Large digits
+                self.v_segment_len = 20
+                if digit_size[1:2] == "N" :
+                    self.h_segment_len = 10
+                    self.segment_wid = 4
+                else :
+                    self.h_segment_len = 20
+                    self.segment_wid = 6
                 self.spacing = 2
         if "bold" in kwargs :              # Bold (T/F)
             self.bold = kwargs ["bold"]
@@ -571,7 +750,7 @@ class Remote7Segment (RemoteArea) :
                                             hlen = xlen ,
                                             vpos = ypos ,
                                             vlen = self.segment_wid ,
-                                            color = self.fontcolor)
+                                            color = self.textcolor)
     #------------------------------------
     def UL_seg (self, xpos_in, ypos_in) :
         xpos = xpos_in
@@ -585,7 +764,7 @@ class Remote7Segment (RemoteArea) :
                                             hlen = self.segment_wid ,
                                             vpos = ypos ,
                                             vlen = ylen ,
-                                            color = self.fontcolor)
+                                            color = self.textcolor)
     #------------------------------------
     def UR_seg (self, xpos_in, ypos_in) :
         xpos = xpos_in + self.segment_wid + self.h_segment_len
@@ -599,7 +778,7 @@ class Remote7Segment (RemoteArea) :
                                             hlen = self.segment_wid ,
                                             vpos = ypos ,
                                             vlen = ylen ,
-                                            color = self.fontcolor)
+                                            color = self.textcolor)
     #-------------------------------------
     def MID_seg (self, xpos_in, ypos_in) :
         if self.bold :
@@ -613,7 +792,7 @@ class Remote7Segment (RemoteArea) :
                                             hlen = xlen ,
                                             vpos = ypos ,
                                             vlen = self.segment_wid ,
-                                            color = self.fontcolor)
+                                            color = self.textcolor)
     def LL_seg (self, xpos_in, ypos_in) :
         xpos = xpos_in
         if self.bold :
@@ -626,7 +805,7 @@ class Remote7Segment (RemoteArea) :
                                             hlen = self.segment_wid ,
                                             vpos = ypos ,
                                             vlen = ylen ,
-                                            color = self.fontcolor)
+                                            color = self.textcolor)
     def LR_seg (self, xpos_in, ypos_in) :
         xpos = xpos_in + self.segment_wid + self.h_segment_len
         if self.bold :
@@ -639,7 +818,7 @@ class Remote7Segment (RemoteArea) :
                                             hlen = self.segment_wid ,
                                             vpos = ypos ,
                                             vlen = ylen ,
-                                            color = self.fontcolor)
+                                            color = self.textcolor)
     #-----------------------------------
     def BOT_seg (self, xpos_in, ypos_in) :
         if self.bold :
@@ -657,139 +836,90 @@ class Remote7Segment (RemoteArea) :
                                             hlen = xlen ,
                                             vpos = ypos ,
                                             vlen = self.segment_wid ,
-                                            color = self.fontcolor)
+                                            color = self.textcolor)
+    #-----------------------------
+    def build_segments (self, seg_bits, xpos, ypos) :
+        if (seg_bits & self.top_seg_bit) != 0 :
+            self.TOP_seg (xpos, ypos)
+        if (seg_bits & self.mid_seg_bit) != 0 :
+            self.MID_seg (xpos, ypos)
+        if (seg_bits & self.bot_seg_bit) != 0 :
+            self.BOT_seg (xpos, ypos)
+        if (seg_bits & self.ul_seg_bit) != 0 :
+            self.UL_seg (xpos, ypos)
+        if (seg_bits & self.ur_seg_bit) != 0 :
+            self.UR_seg (xpos, ypos)
+        if (seg_bits & self.ll_seg_bit) != 0 :
+            self.LL_seg (xpos, ypos)
+        if (seg_bits & self.lr_seg_bit) != 0 :
+            self.LR_seg (xpos, ypos)
     #---------------------------------------------------------------------------------
     def nine_seg (self, xpos, ypos) :
-        self.TOP_seg (xpos, ypos)
-        self.UL_seg (xpos, ypos)
-        self.UR_seg (xpos, ypos)
-        self.MID_seg (xpos, ypos)
-        self.LR_seg (xpos, ypos)
-        self.BOT_seg (xpos, ypos)
+        self.build_segments (self.nine_segs, xpos, ypos)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def eight_seg (self, xpos, ypos) :
-        self.TOP_seg (xpos, ypos)
-        self.UL_seg (xpos, ypos)
-        self.UR_seg (xpos, ypos)
-        self.MID_seg (xpos, ypos)
-        self.LL_seg (xpos, ypos)
-        self.LR_seg (xpos, ypos)
-        self.BOT_seg (xpos, ypos)
+        self.build_segments (self.eight_segs, xpos, ypos)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def seven_seg (self, xpos, ypos) :
-        self.TOP_seg (xpos, ypos)
-        self.UR_seg (xpos, ypos)
-        self.LR_seg (xpos, ypos)
+        self.build_segments (self.seven_segs, xpos, ypos)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def six_seg (self, xpos, ypos) :
-        self.TOP_seg (xpos, ypos)
-        self.UL_seg (xpos, ypos)
-        self.MID_seg (xpos, ypos)
-        self.LL_seg (xpos, ypos)
-        self.LR_seg (xpos, ypos)
-        self.BOT_seg (xpos, ypos)
+        self.build_segments (self.six_segs, xpos, ypos)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def five_seg (self, xpos, ypos) :
-        self.TOP_seg (xpos, ypos)
-        self.UL_seg (xpos, ypos)
-        self.MID_seg (xpos, ypos)
-        self.LR_seg (xpos, ypos)
-        self.BOT_seg (xpos, ypos)
+        self.build_segments (self.five_segs, xpos, ypos)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def four_seg (self, xpos, ypos) :
-        self.UL_seg (xpos, ypos)
-        self.UR_seg (xpos, ypos)
-        self.MID_seg (xpos, ypos)
-        self.LR_seg (xpos, ypos)
+        self.build_segments (self.four_segs, xpos, ypos)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def three_seg (self, xpos, ypos) :
-        self.TOP_seg (xpos, ypos)
-        self.UR_seg (xpos, ypos)
-        self.MID_seg (xpos, ypos)
-        self.LR_seg (xpos, ypos)
-        self.BOT_seg (xpos, ypos)
+        self.build_segments (self.three_segs, xpos, ypos)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def two_seg (self, xpos, ypos) :
-        self.TOP_seg (xpos, ypos)
-        self.UR_seg (xpos, ypos)
-        self.MID_seg (xpos, ypos)
-        self.LL_seg (xpos, ypos)
-        self.BOT_seg (xpos, ypos)
+        self.build_segments (self.two_segs, xpos, ypos)
         return self.char_wid
     #-----------------------------------------------
     def one_seg (self, xpos, ypos) :
-        self.UR_seg (xpos, ypos)
-        self.LR_seg (xpos, ypos)
+        self.build_segments (self.one_segs, xpos, ypos)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def zero_seg (self, xpos, ypos) :
-        self.TOP_seg (xpos, ypos)
-        self.UL_seg (xpos, ypos)
-        self.UR_seg (xpos, ypos)
-        self.LL_seg (xpos, ypos)
-        self.LR_seg (xpos, ypos)
-        self.BOT_seg (xpos, ypos)
+        self.build_segments (self.zero_segs, xpos, ypos)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def a_seg (self, xpos, ypos) :
-        self.TOP_seg (xpos, ypos)
-        self.UL_seg (xpos, ypos)
-        self.UR_seg (xpos, ypos)
-        self.MID_seg (xpos, ypos)
-        self.LL_seg (xpos, ypos)
-        self.LR_seg (xpos, ypos)
+        self.build_segments (self.a_segs, xpos, ypos)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def b_seg (self, xpos, ypos) :
-        self.UL_seg (xpos, ypos)
-        self.MID_seg (xpos, ypos)
-        self.LL_seg (xpos, ypos)
-        self.LR_seg (xpos, ypos)
-        self.BOT_seg (xpos, ypos)
+        self.build_segments (self.b_segs, xpos, ypos)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def c_seg (self, xpos, ypos) :
-        self.TOP_seg (xpos, ypos)
-        self.UL_seg (xpos, ypos)
-        self.LL_seg (xpos, ypos)
-        self.BOT_seg (xpos, ypos)
+        self.build_segments (self.c_segs, xpos, ypos)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def d_seg (self, xpos, ypos) :
-        self.UR_seg (xpos, ypos)
-        self.MID_seg (xpos, ypos)
-        self.LL_seg (xpos, ypos)
-        self.LR_seg (xpos, ypos)
-        self.BOT_seg (xpos, ypos)
+        self.build_segments (self.d_segs, xpos, ypos)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def e_seg (self, xpos, ypos) :
-        self.TOP_seg (xpos, ypos)
-        self.UL_seg (xpos, ypos)
-        self.MID_seg (xpos,ypos)
-        self.LL_seg (xpos, ypos)
-        self.BOT_seg (xpos, ypos)
+        self.build_segments (self.e_segs, xpos, ypos)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def f_seg (self, xpos, ypos) :
-        self.TOP_seg (xpos, ypos)
-        self.UL_seg (xpos, ypos)
-        self.MID_seg (xpos,ypos)
-        self.LL_seg (xpos, ypos)
+        self.build_segments (self.f_segs, xpos, ypos)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def question_seg (self, xpos, ypos) :
-        self.TOP_seg (xpos, ypos)
-        self.UR_seg (xpos, ypos)
-        self.MID_seg (xpos,ypos)
-        self.LL_seg (xpos, ypos)
+        self.build_segments (self.question_segs, xpos, ypos)
         return self.char_wid
 
     #---------------------------------------------------------------------------------
@@ -803,7 +933,7 @@ class Remote7Segment (RemoteArea) :
                                             hlen = self.segment_wid ,
                                             vpos = vypos ,
                                             vlen = self.segment_wid ,
-                                            color = self.fontcolor)
+                                            color = self.textcolor)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def colon_seg (self, xpos, ypos) :
@@ -815,13 +945,13 @@ class Remote7Segment (RemoteArea) :
                                             hlen = self.segment_wid ,
                                             vpos = vypos ,
                                             vlen = self.segment_wid ,
-                                            color = self.fontcolor)
+                                            color = self.textcolor)
         vypos += + self.v_segment_len
         self.remote_display.rectangle_fill (hpos = vxpos ,
                                             hlen = self.segment_wid ,
                                             vpos = vypos ,
                                             vlen = self.segment_wid ,
-                                            color = self.fontcolor)
+                                            color = self.textcolor)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def minus_seg (self, xpos_in, ypos_in) :
@@ -832,7 +962,7 @@ class Remote7Segment (RemoteArea) :
                                             hlen = xlen ,
                                             vpos = ypos ,
                                             vlen = self.segment_wid ,
-                                            color = self.fontcolor)
+                                            color = self.textcolor)
         return self.char_wid
     #---------------------------------------------------------------------------------
     def plus_seg (self, xpos, ypos) :
@@ -843,7 +973,7 @@ class Remote7Segment (RemoteArea) :
                                             hlen = self.segment_wid ,
                                             vpos = vypos ,
                                             vlen = self.h_segment_len ,
-                                            color = self.fontcolor)
+                                            color = self.textcolor)
         return self.char_wid
 
     #---------------------------------------------------------------------------------
@@ -895,7 +1025,7 @@ class RemoteContainer (RemoteArea) :
                                         y = self.ymin ,
                                         text = self.text ,
                                         font = self.font ,
-                                        color = self.fontcolor ,
+                                        color = self.textcolor ,
                                         background = self.backgroundcolor)
 
         if reload_all :
@@ -909,6 +1039,7 @@ class RemoteTemplate (RemoteArea) :
                   remote_display,
                   area_config) :
         super().__init__ (remote_display, area_config)
+        self.show_border_color = remote_display.get_color_name ("GREEN")
     def update (self, **kwargs) :
         #
         #---- Make changes to area parameters
@@ -1029,31 +1160,30 @@ class RemoteDisplay (ILI9341Display) :
             self.page = self.configuration_page
         self.page_count += 1
         gc.collect ()
-    def configure (self, area) :
-        #print ("area:", area)
-        if "areas" not in area :
-            area ["areas"] = []
+    def configure (self, area_config) :
+        if "areas" not in area_config :
+            area_config ["areas"] = []
         area_obj = None
-        if "type" not in area :
-            area ["type"] = "container"
-        if area ["type"] not in self.area_types :
+        if "type" not in area_config :
+            area_config ["type"] = "container"
+        if area_config ["type"] not in self.area_types :
             print ("Unknown area type:", area["type"])
-            area ["type"] = "container"
-        area_obj = self.area_types [area ["type"]] (self, area)
+            area_config ["type"] = "container"
+        area_obj = self.area_types [area_config ["type"]] (self, area_config)
         if area_obj is None :
             return None
-        if "area_id" in area :
-            #print (area["area_id"])
-            self.areas [area["area_id"]] = area_obj
-        for child in area["areas"] :
-            child ["parent_hpos"] = area_obj.hpos
-            child ["parent_vpos"] = area_obj.vpos
-            #print ("child:", child)
+        if "area_id" in area_config :
+            self.areas [area_config ["area_id"]] = area_obj
+        for child in area_config ["areas"] :
+            child ["parent_hpos"] = area_obj.xmin
+            child ["parent_vpos"] = area_obj.ymin
             area_obj.add_area (self.configure (child))
         return area_obj
 
     def get_color_name (self, color_name) :
-        return self.color_names [color_name]
+        if color_name in self.color_names :
+            return self.color_names [color_name]
+        return 0         # black
 
     #---- Load command (eg. switch page)
     def add_update (self, update_id, update_class) :
@@ -1178,6 +1308,7 @@ class RemoteDisplay (ILI9341Display) :
 # main
 ################################################################################
 #
+
 
 SPI_ID = 0
 SCK = 18
@@ -1361,21 +1492,9 @@ fortunes = [
     "    Signs point to yes     "
     ]
 
-#print ("call dummy_test ##############")
-#disp.dummy_test ()
-#sys.exit()
-
-#print ("screen_reload")
-#disp.screen_reload ()
-#disp.circle_fill (xpos=50, ypos=50, r=25, color=disp.color_names ["RED"])
-#time.sleep (5)
-
-#disp.update_lamp_area (area = "WarpDrive", color_name = "ok")
-#sys.exit ()
-
-
-
-#disp.screen_reload ()
+disp.screen_clear ()
+disp.show_area ("screen")
+time.sleep (5.0)
 
 disp.update_area (area = "UpperRight", text = "Test")
 disp.update_area (area = "UpperLeft", text = "Upper Left")

@@ -1,35 +1,13 @@
 #
 
-#import sys
-#import time
-
 from ili9341 import Display, color565
-from machine import Pin, SPI  # type: ignore
+from machine import Pin, SPI
 
 from xglcd_font import XglcdFont
 
 class ILI9341Display :
     def __init__ (self , **kwargs) :
-        #print ("ILI9341Display:", kwargs)
         self.display = self.initialize_display (**kwargs)
-        self.color_names = {
-                        "BLACK" : self.convert_rgb (0, 0, 0) ,
-                        "WHITE" : self.convert_rgb (255, 255, 255) ,
-                        "RED" : self.convert_rgb (255, 0, 0) ,
-                        "LIME" : self.convert_rgb (0, 255, 0) ,
-                        "BLUE" : self.convert_rgb (0, 0, 255) ,
-                        "YELLOW" : self.convert_rgb (255, 255, 0) ,
-                        "CYAN" : self.convert_rgb (0, 255, 255) ,
-                        "MAGENTA" : self.convert_rgb (255, 0, 255) ,
-                        "SILVER" : self.convert_rgb (192, 192, 192) ,
-                        "GRAY" : self.convert_rgb (128, 128, 128) ,
-                        "MAROON" : self.convert_rgb (128, 0, 0) ,
-                        "OLIVE" : self.convert_rgb (128, 128, 0) ,
-                        "GREEN" : self.convert_rgb (0, 128, 0) ,
-                        "PURPLE" : self.convert_rgb (80, 0, 80) ,
-                        "TEAL" : self.convert_rgb (0, 128, 128) ,
-                        "NAVY" : self.convert_rgb (0, 0, 128)
-                        }
         xy_params = {
                     "x" : "x" ,
                     "xpos" : "x" ,
@@ -51,10 +29,6 @@ class ILI9341Display :
                                     "hlines" : "hlines"
                                     }
         self.pixel_params = {
-                            #"x" : "x" ,
-                            #"xpos" : "x" ,
-                            #"y" : "y" ,
-                            #"ypos" : "y" ,
                             "color" : "color"
                             }
         self.pixel_params.update (xy_params)
@@ -78,16 +52,6 @@ class ILI9341Display :
                             "color" : "color"
                             }
         self.rectangle_params = {
-                                #"x" : "x" ,
-                                #"xpos" : "x" ,
-                                #"y" : "y" ,
-                                #"ypos" : "y" ,
-                                #"h" : "h" ,
-                                #"vlen" : "h" ,
-                                #"height" : "h" ,
-                                #"w" : "w" ,
-                                #"hlen" : "w" ,
-                                #"width" : "w" ,
                                 "color" : "color"
                                 }
         self.rectangle_params.update (xy_params)
@@ -160,6 +124,9 @@ class ILI9341Display :
                             "rst" : "rst" ,
                             "display_rst" : "rst"
                             }
+        ignore_params = {
+                        "trace_methods" : "Used by RemoteTrace"
+                        }
         display_object_args = {}
         spi_args = {}
         display_args = {}
@@ -175,6 +142,8 @@ class ILI9341Display :
             elif id in display_params :
                 arg_id = display_params [id]
                 display_args [arg_id] = kwargs [id]
+            elif id in ignore_params :
+                pass
             else :
                 print ("__init__: Unknown parameter", id)
         if "display_object" in display_object_args :
