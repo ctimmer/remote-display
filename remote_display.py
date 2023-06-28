@@ -498,7 +498,9 @@ class RemoteLamp (RemoteArea) :
 
 ## end RemoteLamp ##
 
-
+#-------------------------------------------------------------------------------
+# Remote7Segment
+#-------------------------------------------------------------------------------
 class Remote7Segment (RemoteArea) :
     def __init__ (self,
                   remote_display,
@@ -563,101 +565,31 @@ class Remote7Segment (RemoteArea) :
         self.f_segs = self.top_seg_bit | self.ul_seg_bit | self.mid_seg_bit|self.ll_seg_bit
         self.question_segs = self.top_seg_bit | self.ur_seg_bit|self.mid_seg_bit|self.ll_seg_bit
         self.segment_chars = {
-            "0" : {
-                "handler" : self.zero_seg
-                } ,
-            "1" : {
-                "handler" : self.one_seg
-                } ,
-            "2" : {
-                "handler" : self.two_seg
-                } ,
-            "3" : {
-                "handler" : self.three_seg
-                } ,
-            "4" : {
-                "handler" : self.four_seg
-                } ,
-            "5" : {
-                "handler" : self.five_seg
-                } ,
-            "6" : {
-                "handler" : self.six_seg
-                } ,
-            "7" : {
-                "handler" : self.seven_seg
-                } ,
-            "8" : {
-                "handler" : self.eight_seg
-                } ,
-            "9" : {
-                "handler" : self.nine_seg
-                } ,
-            "." : {
-                "handler" : self.decimal_point_seg
-                } ,
-            "+" : {
-                "handler" : self.plus_seg
-                } ,
-            "-" : {
-                "handler" : self.minus_seg
-                } ,
-            ":" : {
-                "handler" : self.colon_seg
-                } ,
-            "?" : {
-                "handler" : self.question_seg
-                } ,
-            " " : {
-                "handler" : self.space_seg
-                } ,
-            "A" : {
-                "handler" : self.a_seg
-                } ,
-            "a" : {
-                "handler" : self.a_seg
-                } ,
-            "B" : {
-                "handler" : self.b_seg
-                } ,
-            "b" : {
-                "handler" : self.b_seg
-                } ,
-            "C" : {
-                "handler" : self.c_seg
-                } ,
-            "c" : {
-                "handler" : self.c_seg
-                } ,
-            "D" : {
-                "handler" : self.d_seg
-                } ,
-            "d" : {
-                "handler" : self.d_seg
-                } ,
-            "E" : {
-                "handler" : self.e_seg
-                } ,
-            "e" : {
-                "handler" : self.e_seg
-                } ,
-            "F" : {
-                "handler" : self.f_seg
-                } ,
-            "f" : {
-                "handler" : self.f_seg
-                }
+            "0" : {"handler" : self.build_segments, "args" : [self.zero_segs]} ,
+            "1" : {"handler" : self.build_segments, "args" : [self.one_segs]} ,
+            "2" : {"handler" : self.build_segments, "args" : [self.two_segs]} ,
+            "3" : {"handler" : self.build_segments, "args" : [self.three_segs]} ,
+            "4" : {"handler" : self.build_segments, "args" : [self.four_segs]} ,
+            "5" : {"handler" : self.build_segments, "args" : [self.five_segs]} ,
+            "6" : {"handler" : self.build_segments, "args" : [self.six_segs]} ,
+            "7" : {"handler" : self.build_segments, "args" : [self.seven_segs]} ,
+            "8" : {"handler" : self.build_segments, "args" : [self.eight_segs]} ,
+            "9" : {"handler" : self.build_segments, "args" : [self.nine_segs]} ,
+            "." : {"handler" : self.decimal_point_seg, "args" : []} ,
+            "+" : {"handler" : self.plus_seg, "args" : []} ,
+            "-" : {"handler" : self.minus_seg, "args" : []} ,
+            ":" : {"handler" : self.colon_seg, "args" : []} ,
+            "?" : {"handler" : self.build_segments, "args" : [self.question_segs]} ,
+            " " : {"handler" : self.space_seg, "args" : []} ,
+            "a" : {"handler" : self.build_segments, "args" : [self.a_segs]} ,
+            "b" : {"handler" : self.build_segments, "args" : [self.b_segs]} ,
+            "c" : {"handler" : self.build_segments, "args" : [self.c_segs]} ,
+            "d" : {"handler" : self.build_segments, "args" : [self.d_segs]} ,
+            "e" : {"handler" : self.build_segments, "args" : [self.e_segs]} ,
+            "f" : {"handler" : self.build_segments, "args" : [self.f_segs]}
             }
     
     def set_parameters (self, **kwargs) :
-                        #pixel_display=None ,
-                        #digit_size=None ,
-                        #v_segment_length=None ,
-                        #h_segment_length=None ,
-                        #segment_width=None ,
-                        #spacing=None ,
-                        #bold=None ,
-                        #color=None) :
         if "digit_size" in kwargs :
             #print ("digit_size:",kwargs ["digit_size"])
             digit_size = kwargs ["digit_size"].upper() + "  "
@@ -696,8 +628,6 @@ class Remote7Segment (RemoteArea) :
             self.sign_seg_len = 5
         elif self.sign_seg_len % 2 != 0 :
             self.sign_seg_len -= 1
-
-# end set_parameters #
 
     def update (self, **kwargs) :
         if "text" not in kwargs :
@@ -853,73 +783,6 @@ class Remote7Segment (RemoteArea) :
             self.LL_seg (xpos, ypos)
         if (seg_bits & self.lr_seg_bit) != 0 :
             self.LR_seg (xpos, ypos)
-    #---------------------------------------------------------------------------------
-    def nine_seg (self, xpos, ypos) :
-        self.build_segments (self.nine_segs, xpos, ypos)
-        return self.char_wid
-    #---------------------------------------------------------------------------------
-    def eight_seg (self, xpos, ypos) :
-        self.build_segments (self.eight_segs, xpos, ypos)
-        return self.char_wid
-    #---------------------------------------------------------------------------------
-    def seven_seg (self, xpos, ypos) :
-        self.build_segments (self.seven_segs, xpos, ypos)
-        return self.char_wid
-    #---------------------------------------------------------------------------------
-    def six_seg (self, xpos, ypos) :
-        self.build_segments (self.six_segs, xpos, ypos)
-        return self.char_wid
-    #---------------------------------------------------------------------------------
-    def five_seg (self, xpos, ypos) :
-        self.build_segments (self.five_segs, xpos, ypos)
-        return self.char_wid
-    #---------------------------------------------------------------------------------
-    def four_seg (self, xpos, ypos) :
-        self.build_segments (self.four_segs, xpos, ypos)
-        return self.char_wid
-    #---------------------------------------------------------------------------------
-    def three_seg (self, xpos, ypos) :
-        self.build_segments (self.three_segs, xpos, ypos)
-        return self.char_wid
-    #---------------------------------------------------------------------------------
-    def two_seg (self, xpos, ypos) :
-        self.build_segments (self.two_segs, xpos, ypos)
-        return self.char_wid
-    #-----------------------------------------------
-    def one_seg (self, xpos, ypos) :
-        self.build_segments (self.one_segs, xpos, ypos)
-        return self.char_wid
-    #---------------------------------------------------------------------------------
-    def zero_seg (self, xpos, ypos) :
-        self.build_segments (self.zero_segs, xpos, ypos)
-        return self.char_wid
-    #---------------------------------------------------------------------------------
-    def a_seg (self, xpos, ypos) :
-        self.build_segments (self.a_segs, xpos, ypos)
-        return self.char_wid
-    #---------------------------------------------------------------------------------
-    def b_seg (self, xpos, ypos) :
-        self.build_segments (self.b_segs, xpos, ypos)
-        return self.char_wid
-    #---------------------------------------------------------------------------------
-    def c_seg (self, xpos, ypos) :
-        self.build_segments (self.c_segs, xpos, ypos)
-        return self.char_wid
-    #---------------------------------------------------------------------------------
-    def d_seg (self, xpos, ypos) :
-        self.build_segments (self.d_segs, xpos, ypos)
-        return self.char_wid
-    #---------------------------------------------------------------------------------
-    def e_seg (self, xpos, ypos) :
-        self.build_segments (self.e_segs, xpos, ypos)
-        return self.char_wid
-    #---------------------------------------------------------------------------------
-    def f_seg (self, xpos, ypos) :
-        self.build_segments (self.f_segs, xpos, ypos)
-        return self.char_wid
-    #---------------------------------------------------------------------------------
-    def question_seg (self, xpos, ypos) :
-        self.build_segments (self.question_segs, xpos, ypos)
         return self.char_wid
 
     #---------------------------------------------------------------------------------
@@ -939,7 +802,6 @@ class Remote7Segment (RemoteArea) :
     def colon_seg (self, xpos, ypos) :
         vxpos = xpos + (self.width_mid - (self.segment_wid // 2))
         vypos = ypos + self.v_segment_len \
-                                    + self.segment_wid \
                                     + self.segment_wid
         self.remote_display.rectangle_fill (hpos = vxpos ,
                                             hlen = self.segment_wid ,
@@ -988,18 +850,23 @@ class Remote7Segment (RemoteArea) :
     #-----------------------------
     def display_character (self, xpos, ypos, char) :
         #print ("'" + char + "'")
-        if char in self.segment_chars :
-            return self.segment_chars[char]["handler"] (xpos, ypos)
+        disp_char = char.lower ()
+        if disp_char in self.segment_chars :
+            self.segment_chars[disp_char]["handler"] (*self.segment_chars[disp_char]["args"] ,
+                                                      xpos, ypos)
         else :
-            return self.question_seg (xpos, ypos)
+            self.build_segments (self.question_segs, xpos, ypos)
+        return self.char_wid
     def display_string (self, xpos, ypos, chars) :
         x_display = xpos
         for char in chars :
             x_display += self.display_character (x_display, ypos, char)
         return x_display
 
-# end Remote7Segment #
+## end Remote7Segment ##
 
+#-------------------------------------------------------------------------------
+# RemoteContainer
 #-------------------------------------------------------------------------------
 class RemoteContainer (RemoteArea) :
     def __init__ (self,
@@ -1034,6 +901,8 @@ class RemoteContainer (RemoteArea) :
 ## end RemoteContainer ##
 
 #-------------------------------------------------------------------------------
+# RemoteTemplate
+#-------------------------------------------------------------------------------
 class RemoteTemplate (RemoteArea) :
     def __init__ (self,
                   remote_display,
@@ -1063,10 +932,10 @@ class RemoteTemplate (RemoteArea) :
         if reload_all :
             self.reload_areas ()
 
-## end RemoteLamp ##
+## end RemoteTemplate ##
 
 #-------------------------------------------------------------------------------
-# RemoteDisplay
+# RemoteSwitchPage
 #-------------------------------------------------------------------------------
 class RemoteSwitchPage () :
     def __init__ (self, remote_display) :
@@ -1077,7 +946,7 @@ class RemoteSwitchPage () :
         elif "page_index" in kwargs :
             self.remote_display.page_by_index (kwargs["page_index"])
 
-## end RemoteSwitch_page ##
+## end RemoteSwitchPage ##
 
 #-------------------------------------------------------------------------------
 # RemoteDisplay
