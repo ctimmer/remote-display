@@ -40,119 +40,16 @@ from ili9341 import Display
 from ili9341_display import ILI9341Display
 #from trace_display import TraceDisplay
 
-#-------------------------------------------------------------------------------
-# UpdateQueue
-#-------------------------------------------------------------------------------
-class UpdateQueue :
-    def __init__ (self, size = 20) :
-        self.queue_size = size
-        queue_entry = {
-            "active" : False ,
-            "next" : None ,
-            "data" : None
-            }
-        self.circ_queue = [None for element in range(size)]
-        print (len (self.circ_queue))
-        #---- Initialize queue entries
-        for idx in range (0, size) :
-            self.circ_queue[idx] = queue_entry.copy ()
-            if idx > 0 :
-                self.circ_queue [idx - 1]["next"] = self.circ_queue [idx]
-        self.circ_queue [size - 1]["next"] = self.circ_queue [0] # fix last
-        self.current_entry = self.circ_queue [0]
-        self.data_entry = self.circ_queue [0]
-    def push_queue (self, data) :
-        if self.current_entry ["active"] == True :
-            return True
-        self.current_entry ["active"] = True
-        self.current_entry ["data"] = data
-        self.current_entry = self.current_entry ["next"]
-        return False
-    def pop_queue (self, empty_return = None) :
-        if self.data_entry ["active"] != True :
-            return empty_return
-        data = self.data_entry ["data"]
-        self.data_entry ["active"] = False
-        self.data_entry = self.data_entry ["next"]
-        return data
-    def empty_queue (self) :
-        return not self.data_entry ["active"]
-    def full_queue (self) :
-        return self.current_entry ["active"]
+from area_modules.remote_area import RemoteArea
 
-## end UpdateQueue ##
+from area_modules.remote_container import RemoteContainer
+from area_modules.remote_text import RemoteText
+from area_modules.remote_image import RemoteImage
+from area_modules.remote_lamp import RemoteLamp
+from area_modules.remote_7segment import Remote7Segment
+from area_modules.remote_switchpage import RemoteSwitchPage
+from area_modules.remote_template import RemoteTemplate
 
-'''
-q = UpdateQueue (size=3)
-print ("queue empty:", q.empty_queue ())
-print (q.push_queue ({"first" : "curt"}))
-print ("queue empty:", q.empty_queue ())
-print (q.push_queue ({"last" : "timm"}))
-print ("queue empty:", q.empty_queue ())
-print (q.push_queue ({"age" : "old"}))
-print ("queue empty:", q.empty_queue ())
-print (q.push_queue ({"state" : "Alaska"}))
-print ("queue empty:", q.empty_queue ())
-print (q.push_queue ({"fail" : "toomany"}))
-print ("queue empty:", q.empty_queue ())
-print (q.pop_queue ())
-print ("queue empty:", q.empty_queue ())
-print (q.pop_queue ())
-print ("queue empty:", q.empty_queue ())
-print (q.pop_queue ())
-print ("queue empty:", q.empty_queue ())
-print (q.pop_queue ())
-print ("queue empty:", q.empty_queue ())
-print (q.pop_queue ())
-print ("queue empty:", q.empty_queue ())
-print (q.pop_queue ())
-print ("queue empty:", q.empty_queue ())
-print (q.push_queue ({"state" : "Alaska"}))
-print ("queue empty:", q.empty_queue ())
-print (q.pop_queue ())
-print ("queue empty:", q.empty_queue ())
-print (q.pop_queue ())
-print ("queue empty:", q.empty_queue ())
-sys.exit ()
-'''
-
-#-------------------------------------------------------------------------------
-# UpdateUDPServer
-#-------------------------------------------------------------------------------
-import select as select
-import socket as socket
-class UpdateUDPServer :
-    def __init__ (self ,
-                  update_display ,
-                  update_queue ,
-                  port = 5010
-                  ) :
-        self.update_display = update_display
-        self.update_queue = update_queue
-        self.port = port
-        self.udp_socket = socket.socket (socket.AF_INET, socket.SOCK_DGRAM)
-        self.udp_socket.setblocking (False)
-        self.udp_socket.bind (('0.0.0.0', self.port))
-        #self.udp_socket.close ()
-
-    def start_server (self) :
-        buf = ""
-        p = select.poll()
-        p.register(self.udp_socket, select.POLLIN)
-        to =  5000 #self.polltimeout
-        while True :
-            events = p.poll (to)
-            for s, flag in events:
-                 print('socket: %s\tflag: %s' % (s, flag))
-            if len (events) > 0 :
-                (buf, addr) = self.udp_socket.recvfrom(1500)
-                print (buf)
-
-## UpdateUDPServer ##
-
-#s = UpdateUDPServer (None, None)
-#s.start_server ()
-#sys.exit ()
 #-------------------------------------------------------------------------------
 # RemotePage
 #-------------------------------------------------------------------------------
@@ -169,25 +66,17 @@ class RemotePage :
     def set_page_active (self, state = False) :
         self.active = state
 
-#import area_modules
 
-from area_modules.remote_area import RemoteArea
 
-from area_modules.remote_container import RemoteContainer
-from area_modules.remote_text import RemoteText
-from area_modules.remote_image import RemoteImage
-from area_modules.remote_lamp import RemoteLamp
-from area_modules.remote_7segment import Remote7Segment
-from area_modules.remote_switchpage import RemoteSwitchPage
-from area_modules.remote_template import RemoteTemplate
+DEVICE_DISPLAY = ILI9341Display
+#DEVICE_DISPLAY = TraceDisplay
 
-device_display = ILI9341Display
 #-------------------------------------------------------------------------------
 # RemoteDisplay
 #-------------------------------------------------------------------------------
 #class RemoteDisplay (TraceDisplay) :
 #class RemoteDisplay (ILI9341Display) :
-class RemoteDisplay (device_display) :
+class RemoteDisplay (DEVICE_DISPLAY) :
     def __init__ (self, **kwargs) :
         #print ("RemoteDisplay __init__:", kwargs)
         super ().__init__ (**kwargs)
