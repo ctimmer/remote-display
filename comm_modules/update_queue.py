@@ -3,6 +3,8 @@
 # UpdateQueue
 #-------------------------------------------------------------------------------
 class UpdateQueue :
+    push_count = 0
+    pop_count = 0
     def __init__ (self, size = 20) :
         self.queue_size = size
         queue_entry = {
@@ -10,34 +12,42 @@ class UpdateQueue :
             "next" : None ,
             "data" : None
             }
-        self.circ_queue = [None for element in range(size)]
-        print (len (self.circ_queue))
         #---- Initialize queue entries
-        for idx in range (0, size) :
-            self.circ_queue[idx] = queue_entry.copy ()
-            if idx > 0 :
-                self.circ_queue [idx - 1]["next"] = self.circ_queue [idx]
-        self.circ_queue [size - 1]["next"] = self.circ_queue [0] # fix last
-        self.current_entry = self.circ_queue [0]
-        self.data_entry = self.circ_queue [0]
+        first_entry = queue_entry.copy ()       # save first entry
+        prev_entry = first_entry
+        for idx in range (0, (size - 1)) :
+            last_entry = queue_entry.copy ()    # new q entry
+            prev_entry ["next"] = last_entry    # forward link
+            prev_entry = last_entry
+        last_entry["next"] = first_entry        # link last to first
+        #---- initialize push/pop entries
+        self.push_entry = first_entry
+        self.pop_entry = first_entry
+
     def push_queue (self, data) :
-        if self.current_entry ["active"] == True :
-            return True
-        self.current_entry ["active"] = True
-        self.current_entry ["data"] = data
-        self.current_entry = self.current_entry ["next"]
-        return False
+        if self.push_entry ["active"] == True :
+            return True                           # full q
+        self.push_entry ["data"] = data           # data to q
+        self.push_entry ["active"] = True         # in use
+        self.push_entry = self.push_entry ["next"] # move to next entry
+        self.push_count += 1
+        return False                              # good return
     def pop_queue (self, empty_return = None) :
-        if self.data_entry ["active"] != True :
-            return empty_return
-        data = self.data_entry ["data"]
-        self.data_entry ["active"] = False
-        self.data_entry = self.data_entry ["next"]
+        if self.pop_entry ["active"] != True :
+            return empty_return                   # empty q
+        data = self.pop_entry ["data"]            # returned data
+        self.pop_entry ["data"] = None            # clear data
+        self.pop_entry ["active"] = False         # make available
+        self.pop_entry = self.pop_entry ["next"]  # move to next entry
+        self.pop_count += 1
         return data
     def empty_queue (self) :
-        return not self.data_entry ["active"]
+        return not self.pop_entry ["active"]
     def full_queue (self) :
-        return self.current_entry ["active"]
+        return self.push_entry ["active"]
+    def __str__ (self) :
+        print ("push count: ", self.push_count)
+        print (" pop count: ", self.pop_count)
 
 ## end UpdateQueue ##
 
@@ -72,4 +82,7 @@ print (q.pop_queue ())
 print ("queue empty:", q.empty_queue ())
 print (q.pop_queue ())
 print ("queue empty:", q.empty_queue ())
+
+str (q)
 '''
+

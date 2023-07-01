@@ -294,6 +294,24 @@ class RemoteDisplay (DEVICE_DISPLAY) :
         return self.background_color_default
     def get_color_by_name (self, color_name) :
         return self.color_names[color_name]
+
+    def dump_area (self, area, level=0) :
+        if area.area_id is not None :
+            area_id = area.area_id
+        else :
+            area_id = "anon"
+        if level <= 0 :
+            indent = ""
+        else :
+            indent = "." * level + " "
+        print (indent + area_id)
+        for child in area.areas :
+            self.dump_area (child, level + 1)
+    def dump (self) :
+        for area in self.page_index :
+            #print (area.area_id)
+            self.dump_area (area)
+            
     
 ## end RemoteDisplay ##
 
@@ -368,6 +386,7 @@ else :
 disp.add_area_type ("template", RemoteTemplate)
 disp.add_area_type ("7segment", Remote7Segment)
 disp.add_update ("switchpage", RemoteSwitchPage)
+
 
 #
 iwidth = 15
@@ -456,6 +475,8 @@ nixie_img = {
 disp.setup_config_file ("testtitle.json")
 disp.setup_config_file ("testconfig.json")
 disp.setup_config_file ("testeoj.json")
+disp.dump ()
+#sys.exit ()
 #disp.show_area ("screen")
 #sys.exit()
 
