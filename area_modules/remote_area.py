@@ -45,24 +45,24 @@ class RemoteArea :
             self.vpos = self.parent_vpos
         if "vlen" in area :
             self.vlen = area ["vlen"]
-            
+        #
         if "borderwidth" in area :
             self.borderwidth = area ["borderwidth"]
-        if "bordercolorname" in area :
-            self.bordercolor = remote_display.get_color_by_name (area ["bordercolorname"])
         if "bordercolorrbg" in area :
             self.bordercolor = remote_display.convert_rgb (*area["bordercolorrgb"])
+        elif "bordercolorname" in area :
+            self.bordercolor = remote_display.get_color_by_name (area ["bordercolorname"])
+        #
         if "paddingwidth" in area :
             self.paddingwidth = area ["paddingwidth"]
-        elif "backgroundcolorrgb" in area :
+        if "backgroundcolorrgb" in area :
             self.backgroundcolor = remote_display.convert_rgb (*area["backgroundcolorrgb"])
         elif "backgroundcolorname" in area :
             self.backgroundcolor = remote_display.get_color_by_name (area["backgroundcolorname"])
+
         if "font" in area :
             self.font = remote_display.get_font (area ["font"])
-        if "textcolor" in area :
-            self.textcolor = area ["textcolor"]
-        elif "textcolorrgb" in area :
+        if "textcolorrgb" in area :
             self.textcolor = remote_display.convert_rgb (*area["textcolorrgb"])
         elif "textcolorname" in area :
             self.textcolor = remote_display.get_color_by_name (area["textcolorname"])
@@ -93,6 +93,7 @@ class RemoteArea :
         xlen = self.hlen
         y = self.vpos
         ylen = self.vlen
+        #---- Border
         for i in range (self.borderwidth) :
             if self.bordercolor is not None :
                 self.remote_display.rectangle (x = x ,
@@ -104,6 +105,7 @@ class RemoteArea :
             y += 1
             xlen -= 2
             ylen -= 2
+        #---- Padding
         for i in range (self.paddingwidth) :
             if self.backgroundcolor is not None :
                 self.remote_display.rectangle (x = x ,
@@ -115,13 +117,7 @@ class RemoteArea :
             y += 1
             xlen -= 2
             ylen -= 2
-    def reload_background (self) :
-        self.reload_border ()
-        if self.backgroundwidth > 0 :
-            if self.backgroundcolor is not None :
-                pass # need
-        if self.paddingwidth > 0 :
-            pass # need
+
     def reload_areas (self) :
         for area in self.areas :
             area.reload ()

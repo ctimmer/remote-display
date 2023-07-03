@@ -33,7 +33,7 @@ class RemoteImage (RemoteArea) :
         if not self.page_is_active() :
             return
         if reload_all :
-            self.reload_background ()
+            self.reload_border ()
         #image_id = self.image_id_current
         image_args = {
                     "hpos" : self.xmin ,

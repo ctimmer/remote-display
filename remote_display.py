@@ -29,14 +29,14 @@ import time
 import random
 import re
 
-from machine import Pin, SPI  # type: ignore
+from machine import Pin, SPI
 
 #from xglcd_font import XglcdFont
 
 import ujson as json
 
 #from xglcd_font import XglcdFont
-from ili9341 import Display
+#from ili9341 import Display
 from ili9341_display import ILI9341Display
 #from trace_display import TraceDisplay
 
@@ -65,8 +65,6 @@ class RemotePage :
         return self.active
     def set_page_active (self, state = False) :
         self.active = state
-
-
 
 DEVICE_DISPLAY = ILI9341Display
 #DEVICE_DISPLAY = TraceDisplay
@@ -539,6 +537,7 @@ gc.collect()
 print ("mem_free:",gc.mem_free())
 
 disp.update_area (area = "switchpage", page_id = "testtitle")
+#sys.exit()
 time.sleep (5)
 disp.update_area (area = "7seg", text = "  1024.48")
 time.sleep (5)

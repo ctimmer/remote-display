@@ -51,48 +51,122 @@ class Remote7Segment (RemoteArea) :
         self.ur_seg_bit  = 0b00010000
         self.ll_seg_bit  = 0b00100000
         self.lr_seg_bit  = 0b01000000
-        self.zero_segs = self.top_seg_bit | self.ul_seg_bit | self.ur_seg_bit|self.ll_seg_bit|self.lr_seg_bit|self.bot_seg_bit
+        self.zero_segs = self.top_seg_bit | self.ul_seg_bit | self.ur_seg_bit \
+                         |self.ll_seg_bit | self.lr_seg_bit | self.bot_seg_bit
         self.one_segs = self.ur_seg_bit | self.lr_seg_bit
-        self.two_segs = self.top_seg_bit | self.ur_seg_bit | self.mid_seg_bit | self.ll_seg_bit | self.bot_seg_bit
-        self.three_segs = self.top_seg_bit | self.ur_seg_bit | self.mid_seg_bit | self.lr_seg_bit | self.bot_seg_bit
+        self.two_segs = self.top_seg_bit | self.ur_seg_bit | self.mid_seg_bit \
+                        | self.ll_seg_bit | self.bot_seg_bit
+        self.three_segs = self.top_seg_bit | self.ur_seg_bit | self.mid_seg_bit \
+                          | self.lr_seg_bit | self.bot_seg_bit
         self.four_segs = self.ul_seg_bit | self.ur_seg_bit | self.mid_seg_bit | self.lr_seg_bit
-        self.five_segs = self.top_seg_bit | self.ul_seg_bit | self.mid_seg_bit | self.lr_seg_bit | self.bot_seg_bit
-        self.six_segs = self.top_seg_bit | self.ul_seg_bit | self.mid_seg_bit | self.ll_seg_bit | self.lr_seg_bit | self.bot_seg_bit
+        self.five_segs = self.top_seg_bit | self.ul_seg_bit | self.mid_seg_bit \
+                         | self.lr_seg_bit | self.bot_seg_bit
+        self.six_segs = self.top_seg_bit | self.ul_seg_bit | self.mid_seg_bit \
+                        | self.ll_seg_bit | self.lr_seg_bit | self.bot_seg_bit
         self.seven_segs = self.top_seg_bit | self.ur_seg_bit | self.lr_seg_bit
-        self.eight_segs = self.top_seg_bit | self.ul_seg_bit | self.ur_seg_bit|self.mid_seg_bit|self.ll_seg_bit|self.lr_seg_bit|self.bot_seg_bit
-        self.nine_segs = self.top_seg_bit | self.ul_seg_bit | self.ur_seg_bit | self.mid_seg_bit | self.lr_seg_bit
-        self.a_segs = self.top_seg_bit | self.ul_seg_bit | self.ur_seg_bit|self.ll_seg_bit|self.lr_seg_bit | self.mid_seg_bit
-        self.b_segs = self.ul_seg_bit | self.ll_seg_bit|self.lr_seg_bit|self.mid_seg_bit |self.bot_seg_bit
-        self.c_segs = self.top_seg_bit | self.ul_seg_bit | self.ll_seg_bit|self.bot_seg_bit
-        self.d_segs = self.ur_seg_bit|self.ll_seg_bit|self.lr_seg_bit|self.mid_seg_bit|self.bot_seg_bit
-        self.e_segs = self.top_seg_bit | self.ul_seg_bit |self.mid_seg_bit|self.ll_seg_bit|self.bot_seg_bit
-        self.f_segs = self.top_seg_bit | self.ul_seg_bit | self.mid_seg_bit|self.ll_seg_bit
-        self.question_segs = self.top_seg_bit | self.ur_seg_bit|self.mid_seg_bit|self.ll_seg_bit
+        self.eight_segs = self.top_seg_bit | self.ul_seg_bit | self.ur_seg_bit \
+                          | self.mid_seg_bit | self.ll_seg_bit | self.lr_seg_bit | self.bot_seg_bit
+        self.nine_segs = self.top_seg_bit | self.ul_seg_bit | self.ur_seg_bit \
+                         | self.mid_seg_bit | self.lr_seg_bit
+        self.a_segs = self.top_seg_bit | self.ul_seg_bit | self.ur_seg_bit \
+                      | self.ll_seg_bit | self.lr_seg_bit | self.mid_seg_bit
+        self.b_segs = self.ul_seg_bit | self.ll_seg_bit|self.lr_seg_bit \
+                      | self.mid_seg_bit |self.bot_seg_bit
+        self.c_segs = self.top_seg_bit | self.ul_seg_bit | self.ll_seg_bit | self.bot_seg_bit
+        self.d_segs = self.ur_seg_bit | self.ll_seg_bit | self.lr_seg_bit \
+                      | self.mid_seg_bit | self.bot_seg_bit
+        self.e_segs = self.top_seg_bit | self.ul_seg_bit | self.mid_seg_bit | self.ll_seg_bit | self.bot_seg_bit
+        self.f_segs = self.top_seg_bit | self.ul_seg_bit | self.mid_seg_bit | self.ll_seg_bit
+        self.question_segs = self.top_seg_bit | self.ur_seg_bit | self.mid_seg_bit | self.ll_seg_bit
         self.segment_chars = {
-            "0" : {"handler" : self.build_segments, "args" : [self.zero_segs]} ,
-            "1" : {"handler" : self.build_segments, "args" : [self.one_segs]} ,
-            "2" : {"handler" : self.build_segments, "args" : [self.two_segs]} ,
-            "3" : {"handler" : self.build_segments, "args" : [self.three_segs]} ,
-            "4" : {"handler" : self.build_segments, "args" : [self.four_segs]} ,
-            "5" : {"handler" : self.build_segments, "args" : [self.five_segs]} ,
-            "6" : {"handler" : self.build_segments, "args" : [self.six_segs]} ,
-            "7" : {"handler" : self.build_segments, "args" : [self.seven_segs]} ,
-            "8" : {"handler" : self.build_segments, "args" : [self.eight_segs]} ,
-            "9" : {"handler" : self.build_segments, "args" : [self.nine_segs]} ,
-            "." : {"handler" : self.decimal_point_seg, "args" : []} ,
-            "+" : {"handler" : self.plus_seg, "args" : []} ,
-            "-" : {"handler" : self.minus_seg, "args" : []} ,
-            ":" : {"handler" : self.colon_seg, "args" : []} ,
-            "?" : {"handler" : self.build_segments, "args" : [self.question_segs]} ,
-            " " : {"handler" : self.space_seg, "args" : []} ,
-            "a" : {"handler" : self.build_segments, "args" : [self.a_segs]} ,
-            "b" : {"handler" : self.build_segments, "args" : [self.b_segs]} ,
-            "c" : {"handler" : self.build_segments, "args" : [self.c_segs]} ,
-            "d" : {"handler" : self.build_segments, "args" : [self.d_segs]} ,
-            "e" : {"handler" : self.build_segments, "args" : [self.e_segs]} ,
-            "f" : {"handler" : self.build_segments, "args" : [self.f_segs]}
+            "0" : {"function" : self.build_segments, "args" : [self.zero_segs]} ,
+            "1" : {"function" : self.build_segments, "args" : [self.one_segs]} ,
+            "2" : {"function" : self.build_segments, "args" : [self.two_segs]} ,
+            "3" : {"function" : self.build_segments, "args" : [self.three_segs]} ,
+            "4" : {"function" : self.build_segments, "args" : [self.four_segs]} ,
+            "5" : {"function" : self.build_segments, "args" : [self.five_segs]} ,
+            "6" : {"function" : self.build_segments, "args" : [self.six_segs]} ,
+            "7" : {"function" : self.build_segments, "args" : [self.seven_segs]} ,
+            "8" : {"function" : self.build_segments, "args" : [self.eight_segs]} ,
+            "9" : {"function" : self.build_segments, "args" : [self.nine_segs]} ,
+            "." : {"function" : self.decimal_point_seg, "args" : []} ,
+            "+" : {"function" : self.plus_seg, "args" : []} ,
+            "-" : {"function" : self.minus_seg, "args" : []} ,
+            ":" : {"function" : self.colon_seg, "args" : []} ,
+            "?" : {"function" : self.build_segments, "args" : [self.question_segs]} ,
+            " " : {"function" : self.space_seg, "args" : []} ,
+            "a" : {"function" : self.build_segments, "args" : [self.a_segs]} ,
+            "b" : {"function" : self.build_segments, "args" : [self.b_segs]} ,
+            "c" : {"function" : self.build_segments, "args" : [self.c_segs]} ,
+            "d" : {"function" : self.build_segments, "args" : [self.d_segs]} ,
+            "e" : {"function" : self.build_segments, "args" : [self.e_segs]} ,
+            "f" : {"function" : self.build_segments, "args" : [self.f_segs]}
             }
-    
+        #---- TOP_segment args
+        self.TOP_args = [0, 0, 0, 0] # hpos, hlen, vpos, vlen
+        if self.bold :
+            self.TOP_args [1] = self.segment_wid + self.h_segment_len + self.segment_wid
+        else :
+            self.TOP_args [0] = self.segment_wid
+            self.TOP_args [1] = self.h_segment_len
+        self.TOP_args [3] = self.segment_wid
+        #---- MID_segment args
+        self.MID_args = [0, 0, 0, 0] # hpos, hlen, vpos, vlen
+        if self.bold :
+            self.MID_args[1] = self.segment_wid + self.h_segment_len + self.segment_wid
+        else :
+            self.MID_args[0] = self.segment_wid
+            self.MID_args[1] = self.h_segment_len
+        self.MID_args[2] = self.segment_wid + self.v_segment_len
+        self.MID_args[3] = self.segment_wid
+        #---- BOT_segment args
+        self.BOT_args = [0, 0, 0, 0] # hpos, hlen, vpos, vlen
+        if self.bold :
+            self.BOT_args[1] = (self.segment_wid * 2) + self.h_segment_len
+        else :
+            self.BOT_args[0] = self.segment_wid
+            self.BOT_args[1] = self.h_segment_len
+        self.BOT_args[2] = (self.segment_wid * 2) + (self.v_segment_len * 2)
+                #+ self.segment_wid \
+                #+ self.v_segment_len
+        self.BOT_args[3] = vlen = self.segment_wid
+        #---- UL_segment args
+        self.UL_args = [0, 0, 0, 0] # hpos, hlen, vpos, vlen
+        self.UL_args[1] = self.segment_wid
+        if self.bold :
+            self.UL_args[3] = (self.segment_wid * 2) + self.v_segment_len
+        else :
+            self.UL_args[2] = self.segment_wid
+            self.UL_args[3] = self.v_segment_len
+        #---- UR segment args
+        self.UR_args = [0, 0, 0, 0] # hpos, hlen, vpos, vlen
+        self.UR_args[0] = self.segment_wid + self.h_segment_len
+        self.UR_args[1] = self.segment_wid
+        if self.bold :
+            self.UR_args[3] = (self.segment_wid * 2) + self.v_segment_len
+        else :
+            self.UR_args[2] = self.segment_wid
+            self.UR_args[3] = self.v_segment_len
+        #---- LL_segment args
+        self.LL_args = [0, 0, 0, 0] # hpos, hlen, vpos, vlen
+        self.LL_args[1] = self.segment_wid
+        if self.bold :
+            self.LL_args[2] = self.segment_wid + self.v_segment_len
+            self.LL_args[3] = (self.segment_wid * 2) + self.v_segment_len
+        else :
+            self.LL_args[2] = (self.segment_wid * 2) + self.v_segment_len
+            self.LL_args[3] = self.v_segment_len
+        #---- LR_segment args
+        self.LR_args = [0, 0, 0, 0] # hpos, hlen, vpos, vlen
+        self.LR_args[0] = self.segment_wid + self.h_segment_len
+        self.LR_args[1] = self.segment_wid
+        if self.bold :
+            self.LR_args[2] = self.segment_wid + self.v_segment_len
+            self.LR_args[3] = (self.segment_wid * 2) + self.v_segment_len
+        else :
+            self.LR_args[2] = (self.segment_wid * 2) + self.v_segment_len
+            self.LR_args[3] = self.v_segment_len
+
     def set_parameters (self, **kwargs) :
         if "digit_size" in kwargs :
             #print ("digit_size:",kwargs ["digit_size"])
@@ -141,10 +215,8 @@ class Remote7Segment (RemoteArea) :
     def reload (self, reload_all = True) :
         if not self.page_is_active() :
             return
-        #print ("active")
-        #print ("reload text:", self.text_current)
         if reload_all :
-            self.reload_background ()
+            self.reload_border ()
         self.remote_display.rectangle_fill (x = self.xmin ,
                                             w = self.xlen ,
                                             y = self.ymin ,
@@ -172,121 +244,31 @@ class Remote7Segment (RemoteArea) :
     #  xxBOTxx      xxxBOTxxx
     #
     #------------------------------
-    def TOP_seg (self, xpos_in, ypos_in) :
-        if self.bold :
-            xpos = xpos_in
-            xlen = self.segment_wid + self.h_segment_len + self.segment_wid
-        else :
-            xpos = xpos_in + self.segment_wid
-            xlen = self.h_segment_len
-        ypos = ypos_in
-        self.remote_display.rectangle_fill (hpos = xpos ,
-                                            hlen = xlen ,
-                                            vpos = ypos ,
-                                            vlen = self.segment_wid ,
-                                            color = self.textcolor)
-    #------------------------------------
-    def UL_seg (self, xpos_in, ypos_in) :
-        xpos = xpos_in
-        if self.bold :
-            ypos = ypos_in
-            ylen = self.segment_wid + self.v_segment_len + self.segment_wid
-        else :
-            ypos = ypos_in + self.segment_wid
-            ylen = self.v_segment_len
-        self.remote_display.rectangle_fill (hpos = xpos ,
-                                            hlen = self.segment_wid ,
-                                            vpos = ypos ,
-                                            vlen = ylen ,
-                                            color = self.textcolor)
-    #------------------------------------
-    def UR_seg (self, xpos_in, ypos_in) :
-        xpos = xpos_in + self.segment_wid + self.h_segment_len
-        if self.bold :
-            ypos = ypos_in
-            ylen = self.segment_wid + self.v_segment_len + self.segment_wid
-        else :
-            ypos = ypos_in + self.segment_wid
-            ylen = self.v_segment_len
-        self.remote_display.rectangle_fill (hpos = xpos ,
-                                            hlen = self.segment_wid ,
-                                            vpos = ypos ,
-                                            vlen = ylen ,
-                                            color = self.textcolor)
-    #-------------------------------------
-    def MID_seg (self, xpos_in, ypos_in) :
-        if self.bold :
-            xpos = xpos_in
-            xlen = self.segment_wid + self.h_segment_len + self.segment_wid
-        else :
-            xpos = xpos_in + self.segment_wid
-            xlen = self.h_segment_len
-        ypos = ypos_in + self.segment_wid + self.v_segment_len
-        self.remote_display.rectangle_fill (hpos = xpos ,
-                                            hlen = xlen ,
-                                            vpos = ypos ,
-                                            vlen = self.segment_wid ,
-                                            color = self.textcolor)
-    def LL_seg (self, xpos_in, ypos_in) :
-        xpos = xpos_in
-        if self.bold :
-            ypos = ypos_in + self.segment_wid + self.v_segment_len
-            ylen = self.segment_wid + self.v_segment_len + self.segment_wid
-        else :
-            ypos = ypos_in + self.segment_wid + self.v_segment_len + self.segment_wid
-            ylen = self.v_segment_len
-        self.remote_display.rectangle_fill (hpos = xpos ,
-                                            hlen = self.segment_wid ,
-                                            vpos = ypos ,
-                                            vlen = ylen ,
-                                            color = self.textcolor)
-    def LR_seg (self, xpos_in, ypos_in) :
-        xpos = xpos_in + self.segment_wid + self.h_segment_len
-        if self.bold :
-            ypos = ypos_in + self.segment_wid + self.v_segment_len
-            ylen = self.segment_wid + self.v_segment_len + self.segment_wid
-        else :
-            ypos = ypos_in + self.segment_wid + self.v_segment_len + self.segment_wid
-            ylen = self.v_segment_len
-        self.remote_display.rectangle_fill (hpos = xpos ,
-                                            hlen = self.segment_wid ,
-                                            vpos = ypos ,
-                                            vlen = ylen ,
-                                            color = self.textcolor)
-    #-----------------------------------
-    def BOT_seg (self, xpos_in, ypos_in) :
-        if self.bold :
-            xpos = xpos_in
-            xlen = self.segment_wid + self.h_segment_len + self.segment_wid
-        else :
-            xpos = xpos_in + self.segment_wid
-            xlen = self.h_segment_len
-        ypos = ypos_in \
-                + self.segment_wid \
-                + self.v_segment_len \
-                + self.segment_wid \
-                + self.v_segment_len
-        self.remote_display.rectangle_fill (hpos = xpos ,
-                                            hlen = xlen ,
-                                            vpos = ypos ,
-                                            vlen = self.segment_wid ,
-                                            color = self.textcolor)
+    def display_segment (self, xpos, ypos, args) :
+        self.remote_display.rectangle_fill (**{
+                                            "hpos" : args[0] + xpos ,
+                                            "hlen" : args[1] ,
+                                            "vpos" : args[2] + ypos ,
+                                            "vlen" : args[3] ,
+                                            "color" : self.textcolor
+                                            }
+                                            )
     #-----------------------------
-    def build_segments (self, seg_bits, xpos, ypos) :
+    def build_segments (self, xpos, ypos, seg_bits) :
         if (seg_bits & self.top_seg_bit) != 0 :
-            self.TOP_seg (xpos, ypos)
+            self.display_segment (xpos, ypos, self.TOP_args)
         if (seg_bits & self.mid_seg_bit) != 0 :
-            self.MID_seg (xpos, ypos)
+            self.display_segment (xpos, ypos, self.MID_args)
         if (seg_bits & self.bot_seg_bit) != 0 :
-            self.BOT_seg (xpos, ypos)
+            self.display_segment (xpos, ypos, self.BOT_args)
         if (seg_bits & self.ul_seg_bit) != 0 :
-            self.UL_seg (xpos, ypos)
+            self.display_segment (xpos, ypos, self.UL_args)
         if (seg_bits & self.ur_seg_bit) != 0 :
-            self.UR_seg (xpos, ypos)
+            self.display_segment (xpos, ypos, self.UR_args)
         if (seg_bits & self.ll_seg_bit) != 0 :
-            self.LL_seg (xpos, ypos)
+            self.display_segment (xpos, ypos, self.LL_args)
         if (seg_bits & self.lr_seg_bit) != 0 :
-            self.LR_seg (xpos, ypos)
+            self.display_segment (xpos, ypos, self.LR_args)
         return self.char_wid
 
     #---------------------------------------------------------------------------------
@@ -353,13 +335,12 @@ class Remote7Segment (RemoteArea) :
         return self.char_height
     #-----------------------------
     def display_character (self, xpos, ypos, char) :
-        #print ("'" + char + "'")
         disp_char = char.lower ()
         if disp_char in self.segment_chars :
-            self.segment_chars[disp_char]["handler"] (*self.segment_chars[disp_char]["args"] ,
-                                                      xpos, ypos)
+            self.segment_chars[disp_char]["function"] (xpos, ypos ,
+                                                        *self.segment_chars[disp_char]["args"])
         else :
-            self.build_segments (self.question_segs, xpos, ypos)
+            self.build_segments (xpos, ypos, self.question_segs)
         return self.char_wid
     def display_string (self, xpos, ypos, chars) :
         x_display = xpos

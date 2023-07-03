@@ -24,7 +24,7 @@ class RemoteText (RemoteArea) :
             return
         #print ("active")
         if reload_all :
-            self.reload_background ()
+            self.reload_border ()
         self.remote_display.rectangle_fill (x = self.xmin ,
                                             w = self.xlen ,
                                             y = self.ymin ,

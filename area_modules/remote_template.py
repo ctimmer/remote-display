@@ -26,7 +26,7 @@ class RemoteTemplate (RemoteArea) :
         if not self.page_is_active() :
             return
         if reload_all :
-            self.reload_background ()
+            self.reload_border ()
         #
         #---- Output to display here
         #
