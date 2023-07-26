@@ -17,7 +17,6 @@ class RemoteLinearGuage (RemoteArea) :
         self.current_value = 0
         self.current_level = None
         #
-        #print (area_config)
         if "verticalguage" in area_config :
             self.vertical_guage = area_config ["verticalguage"]   # True/False
         if "horizontalguage" in area_config :
@@ -43,8 +42,10 @@ class RemoteLinearGuage (RemoteArea) :
         self.range_len = (self.range_max - self.range_min)
     def update (self, **kwargs) :
         if "value" not in kwargs :
+            #print ("b_update: no value")
             return
         if kwargs["value"] == self.current_value :
+            #print ("b_update: no change")
             return
         #
         #---- Make changes to area parameters
@@ -54,16 +55,18 @@ class RemoteLinearGuage (RemoteArea) :
             self.current_value = self.range_max
         elif self.current_value < self.range_min :
             self.current_value = self.range_min
-        self.reload (reload_all = False)
+        RemoteLinearGuage.reload (self, reload_all = False)
         #
     def reset (self) :
         #
         #---- Set area parameters to initial state
         #
-        self.reload (reload_all = True)
+        self.current_value = self.range_min
+        RemoteLinearGuage.reload (self, reload_all = True)
         #
     def reload (self, reload_all = True) :
         if not self.page_is_active() :
+            print ("b_reload: not active")
             return
         if reload_all :
             self.current_level = None
@@ -71,7 +74,6 @@ class RemoteLinearGuage (RemoteArea) :
         #
         #---- Output to display here
         level = None
-        #print ("current_value:",self.current_value)
         bg_w = 0
         bg_h = 0
         lv_w = 0
@@ -81,19 +83,15 @@ class RemoteLinearGuage (RemoteArea) :
             if self.current_level is not None :
                 if level == self.current_level :
                     #print ("no change")
-                    #bg_w = 0                     # No change
-                    #lv_w = 0
                     pass
                 elif level < self.current_level :
                     #print ("extend level")
-                    #bg_w = 0                     # extend level
                     lv_x = self.xmin
                     lv_w = self.xlen
                     lv_y = level
                     lv_h = (self.current_level - level) + 1
                 else :
                     #print ("extend background")
-                    #lv_w = 0                     # extend background
                     bg_x = self.xmin
                     bg_w = self.xlen
                     bg_y = self.current_level # self.ymin
@@ -141,7 +139,6 @@ class RemoteLinearGuage (RemoteArea) :
                 lv_h = self.ylen
 
         self.current_level = level
-        #print ("bg:",bg_x, bg_w, bg_y, bg_h)
         if bg_w > 0 \
         and bg_h > 0 :
             self.remote_display.rectangle_fill (x = bg_x ,
@@ -149,7 +146,6 @@ class RemoteLinearGuage (RemoteArea) :
                                             y = bg_y ,
                                             h = bg_h,
                                             color = self.backgroundcolor)
-        #print ("lv:", lv_x, lv_w, lv_y, lv_h)
         if lv_w > 0 \
         and lv_h > 0 :
             self.remote_display.rectangle_fill (x = lv_x ,
