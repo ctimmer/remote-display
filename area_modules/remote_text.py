@@ -31,8 +31,8 @@ class RemoteText (RemoteArea) :
                                             h = self.ylen,
                                             color=self.backgroundcolor) 
         self.remote_display.text (x = self.xmin ,
-                                    y = self.ymin ,
-                                    text = self.text_current,
+                                  y = self.ymin ,
+                                  text = self.text_current,
                                   font = self.font ,
                                   color = self.textcolor ,
                                   background = self.backgroundcolor)
