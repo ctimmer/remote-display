@@ -277,20 +277,35 @@ class RemoteSysFont (RemoteArea) :
                   area_config) :
         super().__init__ (remote_display, area_config)
         self.scale = 3
-        self.text = ""
+        self.text_current = ""
+        self.text_initial = ""
+        self.len_max = 10
+        self.horizontal = True
+        if "horizontal" in area_config :
+            self.horizontal = area_config["horizontal"]
+        elif "vertical" in area_config :
+            self.horizontal = not area_config["vertical"]
         if "scale" in area_config :
             self.scale = int (area_config["scale"])
-
         else :
-            self.scale = self.ylen // 8
+            if self.horizontal :
+                self.scale = self.ylen // 8
+            else :
+                self.scale = self.xlen // 5
         if self.scale < 1 :
             self.scale = 1
         elif self.scale > 10 :
             self.scale = 10
-        self.len_max = (self.xlen + 1) // (self.scale * 6) # char width + 1
+        if self.horizontal :
+            self.len_max = (self.xlen + self.scale) // (self.scale * 6) # char width + 1
+        else :
+            self.len_max = (self.ylen + self.scale) // (self.scale * 9)
         if "text" in area_config :
-            self.text = area_config ["text"]
-        self.text_current = self.text
+            self.text_current = area_config ["text"]
+            if len (self.text_current) > self.len_max :
+                self.text_current = self.text_current[0:self.len_max]  # too long, trim
+            #print (area_config ["text"],self.text_current, self.len_max)
+        self.text_initial = self.text_current
         self.show_border_color = remote_display.get_color_name ("LIME")
     def update (self, **kwargs) :
         if "text" not in kwargs :
@@ -320,57 +335,34 @@ class RemoteSysFont (RemoteArea) :
                                             y = self.ymin ,
                                             h = self.ylen ,
                                             color=self.backgroundcolor)
-        x_char = self.xmin
+        x_char = self.xmin                   # first char position
+        y_char = self.ymin
         for char in self.text_current :
             if ord (char) > sysfont["End"] :
-                char = "?"
-            sysfont_idx = ord (char) * 5
+                char = "?"                   # invalid
+            sysfont_idx = ord (char) * 5     # first col bits
             x_dot = x_char
-            for byte_idx in range (0,5) :
-                col_bits = sysfont["Data"] [sysfont_idx + byte_idx] << 8
-                y_dot = self.ymin
-                for col_idx in range (0,8) :
-                    col_shift = col_bits >> 1
-                    if col_shift & 0x80 != 0 :
-                        #print (x_dot, self.scale, y_dot, self.scale, self.textcolor)
+            for byte_idx in range (0,5) :    # font columns
+                col_bits = sysfont["Data"] [sysfont_idx + byte_idx] # col bits
+                y_dot = y_char
+                for col_idx in range (0,8) : # font rows
+                    if col_bits == 0 :
+                        break                # no more dots
+                    if col_bits & 0x01 != 0 :
                         self.remote_display.rectangle_fill (x = x_dot ,
                                                             w = self.scale ,
                                                             y = y_dot ,
                                                             h = self.scale ,
                                                             color = self.textcolor)
-                    col_bits = col_shift & 0xff00
-                    y_dot += self.scale
-                x_dot += self.scale
-            x_char += (self.scale * 6)
+                    col_bits >>= 1           # next col bit
+                    y_dot += self.scale      # next row
+                x_dot += self.scale          # next col
+            if self.horizontal :
+                x_char += (self.scale * 6)       # next character position
+            else :
+                y_char += (self.scale * 9)       # next character position
         #
         if reload_all :
             self.reload_areas ()
 
-## end RemoteTemplate ##
-
-'''
-for char in "ABCabc012?#%&+-" :
-    sysfont_idx = ord (char) * 5
-    #print (char, sysfont_idx)
-    char_col = [
-        [" ", " ", " ", " ", " ", " ", " ", " "] ,
-        [" ", " ", " ", " ", " ", " ", " ", " "] ,
-        [" ", " ", " ", " ", " ", " ", " ", " "] ,
-        [" ", " ", " ", " ", " ", " ", " ", " "] ,
-        [" ", " ", " ", " ", " ", " ", " ", " "]
-        ]
-    for byte_idx in range (0,5) :
-        col_bits = sysfont["Data"] [sysfont_idx + byte_idx] << 8
-        col = char_col [byte_idx]
-        #print ("col:",col)
-        for col_idx in range (0,8) :
-            col_shift = col_bits >> 1
-            if col_shift & 0x80 != 0 :
-                col[col_idx] = "*"
-            col_bits = col_shift & 0xff00
-        #print ("col:",col)
-    for row_idx in range (0,8) :
-        for col_idx in range (0,5) :
-            print (char_col[col_idx][row_idx], end='')
-        print ()
-'''
+## end RemoteSysFont ##
