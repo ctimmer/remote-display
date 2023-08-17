@@ -103,8 +103,8 @@ Provides a generic API to the actual hardware library
 Example:
 ```json
 {
-    "page_id" : "testconfig" ,
-    "id": "screen",
+    "page_id" : "configexample" ,
+    "area_id": "displayscreen",
     "vpos": 0,
     "vlen": 240,
     "hpos": 0,
@@ -141,4 +141,131 @@ Example:
         }
     ]
 }
+```
+## **REMOTE DISPLAY**
+
+```python
+# Display configuration file (display_config.py)
+# Determines the type of display
+# and if the trace interface is to be included
+TRACE_ON = False
+#TRACE_ON = True
+
+from display_modules.st7789s3_display import ST7789Display
+DEVICE_DISPLAY = ST7789Display
+TRACE_DISPLAY = None
+
+if TRACE_ON :
+    TRACE_DISPLAY = DEVICE_DISPLAY
+    from display_modules.trace_display import TraceDisplay
+    DEVICE_DISPLAY = TraceDisplay
+
+
+# Configurationtion (config.json):
+{
+    "page_id" : "configexample" , # if omitted, auto assigned
+    "area_id": "displayscreen",   # Optional
+    "vpos": 0,        # default
+    "vlen": 240,      # display height normally
+    "hpos": 0,        # default
+    "hlen": 320,      # display width normally
+    "areas": [        # areas (display fields)
+        {
+        }
+    ]
+}
+
+# implementation:
+DISPLAY_WIDTH = 320
+DISPLAY_HEIGHT = 170
+ROTATION = 0
+disp = RemoteDisplay (width = DISPLAY_WIDTH ,
+                        height = DISPLAY_HEIGHT ,
+                        rotation = ROTATION)
+
+# Add area type
+disp.add_area_type ("7segment", Remote7Segment)
+
+# Add font
+disp.add_font ('vga1_16x32', 'vga1_16x32')
+
+# Add image
+disp.add_image ('nixie0', 'images/nixie0.raw', iwidth, iheight)
+
+disp.setup_config_file ("config.json")
+
+```
+
+## **AREA MODULES**
+
+### **remote_area**
+
+Base parent class inherited by all other area classes
+
+```python
+    {
+    "area_id" : str ,     # optional, set by area child
+    "type" : "container" ,  # default if omitted
+    "vpos": int ,
+    "vlen": int ,
+    "hpos": int ,
+    "hlen": int ,
+    "borderwidth" : int ,
+    "bordercolorname" : str ,
+    "bordercolorrgb : [int, int, int] ,
+    "paddingwidth" : int ,
+    "backgroundcolorname" : str ,
+    "font" : str ,
+    "textcolorname" : str ,
+    "textcolorrgb : [int, int, int]
+    }
+
+# Import:
+from area_modules.remote_area import RemoteArea
+```
+**Configuration id's handled by remote_area**
+- area_id
+- type
+- vpos
+- vlen
+- hpos
+- hlen
+- borderwidth
+- bordercolorbyname, bordercolorrgb
+- paddingwidth
+- font
+  - id of predefined font
+- textcolorbyname, textcolorrgb
+  - Becomes self.textcolor
+
+**Calculated values that can be used by the child classes:**
+- self.xmin
+- self.xlen
+- self.ymin
+- self.ylen
+- self.xymid
+
+### **remote_7segment**
+
+
+```py
+# Configuration File:
+    {
+    "area_id" : "7seg" ,
+    "type" : "7segment" ,
+    "vpos": 80,
+    "vlen": 42,
+    "hpos": 30,
+    "hlen": 200 ,
+    "borderwidth" : 4 ,
+        "bordercolorname" : "BLUE" ,
+        "paddingwidth" : 2 ,
+        "text" : "1.2345:abcdef?" ,
+        "digit_size" : "mn" ,
+        "bold" : true ,
+        "backgroundcolorname" : "CYAN" ,
+        "textcolorname" : "RED"
+    }
+
+
 ```

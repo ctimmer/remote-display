@@ -4,8 +4,11 @@
 #-------------------------------------------------------------------------------
 class UpdateQueue :
     push_count = 0
+    push_fails = 0
     pop_count = 0
-    def __init__ (self, size = 20) :
+    pop_fails = 0
+    def __init__ (self, size = 20, empty_return = None) :
+        self.empty_return = empty_return
         self.queue_size = size
         queue_entry = {
             "active" : False ,
@@ -25,64 +28,75 @@ class UpdateQueue :
         self.pop_entry = first_entry
 
     def push_queue (self, data) :
-        if self.push_entry ["active"] == True :
-            return True                           # full q
-        self.push_entry ["data"] = data           # data to q
-        self.push_entry ["active"] = True         # in use
-        self.push_entry = self.push_entry ["next"] # move to next entry
         self.push_count += 1
+        if self.push_entry ["active"] == True :
+            self.push_fails += 1
+            return True                           # full q
+        self.push_entry ["active"] = True         # in use
+        self.push_entry ["data"] = data           # data to q
+        self.push_entry = self.push_entry ["next"] # move to next entry
         return False                              # good return
-    def pop_queue (self, empty_return = None) :
+    def pop_queue (self) :
+        self.pop_count += 1
         if self.pop_entry ["active"] != True :
-            return empty_return                   # empty q
+            self.pop_fails += 1
+            return self.empty_return              # empty q
         data = self.pop_entry ["data"]            # returned data
         self.pop_entry ["data"] = None            # clear data
         self.pop_entry ["active"] = False         # make available
         self.pop_entry = self.pop_entry ["next"]  # move to next entry
-        self.pop_count += 1
         return data
+
     def empty_queue (self) :
         return not self.pop_entry ["active"]
     def full_queue (self) :
         return self.push_entry ["active"]
-    def __str__ (self) :
+
+    def stats (self) :
+        print ("** queue statistics **")
+        if self.empty_queue () :
+            print ("Queue is empty")
+        elif self.full_queue () :
+            print ("Queue is full")
         print ("push count: ", self.push_count)
+        print ("push fails: ", self.push_fails)
         print (" pop count: ", self.pop_count)
+        print (" pop fails: ", self.pop_fails)
 
 ## end UpdateQueue ##
 
-'''
-q = UpdateQueue (size=3)
-print ("queue empty:", q.empty_queue ())
-print (q.push_queue ({"first" : "curt"}))
-print ("queue empty:", q.empty_queue ())
-print (q.push_queue ({"last" : "timm"}))
-print ("queue empty:", q.empty_queue ())
-print (q.push_queue ({"age" : "old"}))
-print ("queue empty:", q.empty_queue ())
-print (q.push_queue ({"state" : "Alaska"}))
-print ("queue empty:", q.empty_queue ())
-print (q.push_queue ({"fail" : "toomany"}))
-print ("queue empty:", q.empty_queue ())
-print (q.pop_queue ())
-print ("queue empty:", q.empty_queue ())
-print (q.pop_queue ())
-print ("queue empty:", q.empty_queue ())
-print (q.pop_queue ())
-print ("queue empty:", q.empty_queue ())
-print (q.pop_queue ())
-print ("queue empty:", q.empty_queue ())
-print (q.pop_queue ())
-print ("queue empty:", q.empty_queue ())
-print (q.pop_queue ())
-print ("queue empty:", q.empty_queue ())
-print (q.push_queue ({"state" : "Alaska"}))
-print ("queue empty:", q.empty_queue ())
-print (q.pop_queue ())
-print ("queue empty:", q.empty_queue ())
-print (q.pop_queue ())
-print ("queue empty:", q.empty_queue ())
+if __name__ == "__main__" :
+    q = UpdateQueue (size = 4)
+    print ("queue empty:", q.empty_queue ())
+    print (q.push_queue ({"first" : "curt"}))
+    print ("queue empty:", q.empty_queue ())
+    print (q.push_queue ({"last" : "timm"}))
+    print ("queue empty:", q.empty_queue ())
+    print (q.push_queue ({"age" : "old"}))
+    print ("queue empty:", q.empty_queue ())
+    print (q.push_queue ({"state" : "Alaska"}))
+    print ("queue empty:", q.empty_queue ())
+    print (q.push_queue ({"fail" : "toomany"}))
+    print ("queue empty:", q.empty_queue ())
+    print (q.pop_queue ())
+    print ("queue empty:", q.empty_queue ())
+    print (q.pop_queue ())
+    print ("queue empty:", q.empty_queue ())
+    print (q.pop_queue ())
+    print ("queue empty:", q.empty_queue ())
+    print (q.pop_queue ())
+    print ("queue empty:", q.empty_queue ())
+    print (q.pop_queue ())
+    print ("queue empty:", q.empty_queue ())
+    print (q.pop_queue ())
+    print ("queue empty:", q.empty_queue ())
+    print (q.push_queue ({"state" : "Alaska"}))
+    print ("queue empty:", q.empty_queue ())
+    print (q.pop_queue ())
+    print ("queue empty:", q.empty_queue ())
+    print (q.pop_queue ())
+    print ("queue empty:", q.empty_queue ())
 
-str (q)
-'''
+    q.stats()
+
 
