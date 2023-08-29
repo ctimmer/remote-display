@@ -30,7 +30,7 @@ class RemoteImage (RemoteArea) :
         self.reload (reload_all = False)
 
     def reload (self, reload_all = True) :
-        if not self.page_is_active() :
+        if not self.page_is_active (self.page_id) :
             return
         if reload_all :
             self.reload_border ()

@@ -14,7 +14,7 @@ class RemoteContainer (RemoteArea) :
             self.text = area_config["text"]
 
     def reload (self, reload_all = True) :
-        if not self.page_is_active() :
+        if not self.page_is_active (self.page_id) :
             return
         if reload_all :
             self.reload_border ()

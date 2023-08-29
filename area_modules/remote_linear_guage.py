@@ -65,7 +65,7 @@ class RemoteLinearGuage (RemoteArea) :
         RemoteLinearGuage.reload (self, reload_all = True)
         #
     def reload (self, reload_all = True) :
-        if not self.page_is_active() :
+        if not self.page_is_active(self.page_id) :
             print ("b_reload: not active")
             return
         if reload_all :

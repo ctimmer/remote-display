@@ -20,7 +20,7 @@ class RemoteText (RemoteArea) :
         self.text_current = kwargs ["text"]
         self.reload (reload_all = False)
     def reload (self, reload_all = True) :
-        if not self.page_is_active() :
+        if not self.page_is_active(self.page_id) :
             return
         #print ("active")
         if reload_all :

@@ -72,7 +72,7 @@ class RemoteLamp (RemoteArea) :
         self.text = lamp["text"]
         self.reload (reload_all = False)
     def reload (self, reload_all = True) :
-        if self.page_is_active() :
+        if self.page_is_active (self.page_id) :
             if reload_all :
                 self.reload_border ()
             #print ("lamp color:", self.lampcolor)

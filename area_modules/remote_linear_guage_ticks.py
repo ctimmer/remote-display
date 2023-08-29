@@ -53,7 +53,7 @@ class RemoteLinearGuageTicks (RemoteLinearGuage) :
         self.reload (reload_all = True)
         #
     def reload (self, reload_all = True) :
-        if not self.page_is_active() :
+        if not self.page_is_active (self.page_id) :
             return
         if reload_all :
             super().reload ()

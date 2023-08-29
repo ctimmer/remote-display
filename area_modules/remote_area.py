@@ -8,7 +8,9 @@ class RemoteArea :
                   area) :
         super().__init__ ()
         self.remote_display = remote_display
-        self.page = remote_display.get_configuration_page ()
+        
+        #self.page = area.page ()  # REMOVE
+        self.page_id = area["page_id"]
         parent_hpos = 0
         parent_vpos = 0
         self.area_id = None
@@ -81,10 +83,12 @@ class RemoteArea :
     def add_area (self, area) :
         if area is not None :
             self.areas.append (area)
-    def page_is_active (self) :
-        return self.page.page_is_active ()
-    def set_page_active (self, state) :
-        self.page.set_page_active (state)
+    def page_is_active (self, page_id) :
+        #return self.page.page_is_active ()
+        return self.remote_display.page_id_is_active (page_id)
+    def set_page_active (self, page_id) :
+        #self.page.set_page_active (state)
+        self.remote_display.change_active_page_id (page_id)
 
     def reload_border (self) :
         if self.xmin == self.hpos :
