@@ -186,6 +186,7 @@ class RemoteDisplay (DEVICE_DISPLAY) :
     def update_area (self, **kwargs) :
         if "area" not in kwargs :
             print ("'area' parameter missing", kwargs)
+            print ("udate_area kwargs:", kwargs)
             return
         area_id = kwargs ["area"]
         if area_id not in self.areas :
@@ -201,12 +202,8 @@ class RemoteDisplay (DEVICE_DISPLAY) :
                 print ("process_update_queue: 'method' entry missing")
                 continue
             method = queue_entry["method"]
-            if "args" in queue_entry :
-                kwargs = queue_entry["args"]
-            else :
-                kwargs = {}
             if method == "update_area" :
-                self.update_area (**kwargs)
+                self.update_area (**queue_entry)
             else :
                 print ("process_update_queue: Unknow method:", method)
 
@@ -226,8 +223,9 @@ class RemoteDisplay (DEVICE_DISPLAY) :
         self.pages.change_active_page_index (page_index)
         self.screen_reload ()
     '''
-    def change_active_page_id (self, page_id) :
-        if page_id == self.active_page_id :
+    def change_active_page_id (self, page_id, reload = False) :
+        if not reload \
+        and page_id == self.active_page_id :
             return                               # No change
         self.active_page_id = page_id
         self.active_base_area = self.page_by_name [page_id]
@@ -279,7 +277,7 @@ class RemoteDisplay (DEVICE_DISPLAY) :
     def get_color_by_name (self, color_name) :
         return self.color_names[color_name]
 
-    def show_area (self, area_id = None, show_all = False) :
+    def show_area (self, area_id = None, show_all = True) :
         area = None
         if area_id is None :
             area = self.get_base_area()
@@ -288,7 +286,7 @@ class RemoteDisplay (DEVICE_DISPLAY) :
         else :
             print ("Unknown area id:", area_id)
             return
-        area.show_area ()
+        area.show_area (show_all = show_all)
         self.dump_area (area)
 
     def dump_area (self, area, level=0) :

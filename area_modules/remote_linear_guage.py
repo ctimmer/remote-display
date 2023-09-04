@@ -66,7 +66,6 @@ class RemoteLinearGuage (RemoteArea) :
         #
     def reload (self, reload_all = True) :
         if not self.page_is_active(self.page_id) :
-            print ("b_reload: not active")
             return
         if reload_all :
             self.current_level = None
@@ -79,7 +78,7 @@ class RemoteLinearGuage (RemoteArea) :
         lv_w = 0
         lv_h = 0
         if self.vertical_guage :
-            level = self.ymax - round((self.current_value / self.range_len) * (self.ylen - 1))
+            level = self.ymax - round(((self.current_value - self.range_min) / self.range_len) * (self.ylen - 1))
             if self.current_level is not None :
                 if level == self.current_level :
                     #print ("no change")
@@ -105,25 +104,17 @@ class RemoteLinearGuage (RemoteArea) :
                 lv_w = self.xlen
                 lv_y = level
                 lv_h = (self.ymax - level) + 1
-            self.current_level = level
         else :
-            level = self.xmin + round((self.current_value / self.range_len) * (self.xlen - 1))
+            level = self.xmin + round(((self.current_value - self.range_min) / self.range_len) * (self.xlen - 1))
             if self.current_level is not None :
                 if level == self.current_level :
-                    #print ("h no change")
-                    #bg_w = 0                     # No change
-                    #lv_w = 0
                     pass
                 elif level > self.current_level :
-                    #print ("h extend level")
-                    #bg_w = 0
                     lv_x = self.current_level + 1
                     lv_w = level - self.current_level
                     lv_y = self.ymin
                     lv_h = self.ylen
                 else :
-                    #print ("h extend bg")
-                    #lv_w = 0
                     bg_x = level + 1
                     bg_w = self.current_level - level
                     bg_y = self.ymin
