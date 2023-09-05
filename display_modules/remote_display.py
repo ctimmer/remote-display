@@ -205,7 +205,7 @@ class RemoteDisplay (DEVICE_DISPLAY) :
             if method == "update_area" :
                 self.update_area (**queue_entry)
             else :
-                print ("process_update_queue: Unknow method:", method)
+                print ("process_update_queue: Unknown method:", method)
 
     def add_page (self, base_area) :
         page_id = base_area.page_id
@@ -255,15 +255,15 @@ class RemoteDisplay (DEVICE_DISPLAY) :
                 child_list.append (area.area_id)
         return child_list
 
-    def number_justify (self, num, rlen=10, pad=" ") :
+    def number_justify (self, num, textlen=10, pad=" ") :
         formatted = re.sub ("[^0-9.-]", "", num)
         if "-" in formatted :
             formatted = str ("-" + re.sub ("[^0-9.]", "", formatted))
         flen = len (formatted)
-        if flen < rlen :
-            formatted = (pad * (rlen - flen)) + formatted
-        elif flen > rlen :
-            formatted = formatted [(flen - rlen)]
+        if flen < textlen :
+            formatted = (pad * (textlen - flen)) + formatted
+        elif flen > textlen :
+            formatted = formatted [(flen - textlen)]
         return formatted
 
     def get_font (self, font_id) :
