@@ -1,5 +1,5 @@
 
-
+import sys
 import select
 import socket
 import json
@@ -30,56 +30,83 @@ class UpdateUDPServer :
         self.udp_socket = None
         self.port = port
         self.ip_stats = {}               # for debugging
+        self.byte_buffer = bytearray (1500)
 
-    def start_server (self, timeout = 5000) :
-        buf = ""
+    def start_server (self) :
         self.udp_socket = socket.socket (socket.AF_INET, socket.SOCK_DGRAM)
         self.udp_socket.bind (('0.0.0.0', self.port))
+        #self.udp_socket.setblocking (False)
         poller = select.poll()
-        poller.register(self.udp_socket, select.POLLIN)  # event 1
+        poller.register(self.udp_socket, select.POLLIN)  # only event
+        timeout = 5000
         while self.running :
-            #print ("poll:", timeout)
-            #self.udp_socket.setblocking (True)
+            input_processed = False
             events = poller.poll (timeout)
             for event in events :
-                if event[1] == 1 :
+                #print (event)
+                if event[1] == select.POLLIN :
                     self.udp_input (event[0])
-                #print (self.ip_stats)
+                    input_processed = True
+                else :
+                    poller.unregister (event[0])
+            if not input_processed :
+                if not self.update_queue.empty_queue () :
+                    self.update_display.process_update_queue (self.update_queue)
+                timeout = 5000
+            else :
+                if self.update_queue.full_queue () :
+                    self.update_display.process_update_queue (self.update_queue)
+                timeout = 10
 
+    #-----------------------------------------------------------------------
+    # udp_input
+    #-----------------------------------------------------------------------
     def udp_input (self, udp_socket) :
-        address_ip = None
         udp_socket.setblocking (False)
         while True :
             buffer = None
             try :
+                '''
+                #print ("recvfrom")
                 (buffer, address_ip) = udp_socket.recvfrom (1500)
-                address = address_ip [0]
-                if address not in self.ip_stats :
-                    self.ip_stats [address] = {
-                                                "input" : 0 ,
-                                                "valid" : 0
-                                                }
-                self.ip_stats [address]["input"] += 1       # stats
-                buffer = json.loads (buffer.decode())
+                buffer = json.loads (buffer.decode("utf-8"))
+                '''
+                #print ("readinto:", time.ticks_ms ())
+                buffer_length = 0
+                buffer_length = udp_socket.readinto(self.byte_buffer)
+                if buffer_length == 0 :
+                    print ("buff == 0")
+                    break
+                buffer = json.loads (str (memoryview(self.byte_buffer[0:buffer_length]), 'utf8'))
+                #
                 #print (buffer)
                 if "method" not in buffer :
+                    print ("no method")
                     continue
                 if buffer["method"] == "shutdown" :
                     self.running = False                     # All done
                     continue
                 if "params" not in buffer :
+                    print ("no params")
                     continue
-                args = buffer["params"]
-                args.update ({"method" : buffer["method"]})  # add method
-                #print (args)
-                self.update_queue.push_queue (args)
-                self.ip_stats [address]["valid"] += 1       # more stats
+                #queue_entry = {
+                #    "method" : buffer["method"] ,
+                #    "params" : buffer["params"]
+                #    }
+                #print (queue_entry)
+                self.update_queue.push_queue ({
+                    "method" : buffer["method"] ,
+                    "params" : buffer["params"]
+                    })
                 if self.update_queue.full_queue () :         # is q full
-                    break ;
+                    break
+                break ### TEST ###
             except :
+                #print ("recvfrom: exception")
+                #time.sleep_ms (100)
                 break
-        if not self.update_queue.empty_queue () :
-            self.update_display.process_update_queue (self.update_queue)
+        #if not self.update_queue.empty_queue () :
+            #self.update_display.process_update_queue (self.update_queue)
 
     def start_test (self,
                     test_data,
@@ -93,7 +120,5 @@ class UpdateUDPServer :
                 self.update_display.process_update_queue (self.update_queue)
                 time.sleep (delay)
 
-    def get_stats (self) :
-        return self.ip_stats
-
 ## UpdateUDPServer ##
+

@@ -276,7 +276,7 @@ class RemoteSysFont (RemoteArea) :
                   remote_display,
                   area_config) :
         super().__init__ (remote_display, area_config)
-        self.scale = 3
+        #self.scale = 3
         self.text_current = ""
         self.text_initial = ""
         self.len_max = 10
@@ -335,6 +335,11 @@ class RemoteSysFont (RemoteArea) :
                                             y = self.ymin ,
                                             h = self.ylen ,
                                             color=self.backgroundcolor)
+        self.text_sysfont (self.text_current ,
+                           self.textcolor ,
+                           self.scale ,
+                           self.horizontal)
+        '''
         x_char = self.xmin                   # first char position
         y_char = self.ymin
         for char in self.text_current :
@@ -361,6 +366,7 @@ class RemoteSysFont (RemoteArea) :
                 x_char += (self.scale * 6)       # next character position
             else :
                 y_char += (self.scale * 9)       # next character position
+        '''
         #
         if reload_all :
             self.reload_areas ()

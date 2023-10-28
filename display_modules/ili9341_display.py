@@ -1,9 +1,9 @@
 #
 
-from ili9341 import Display, color565
+from display_modules.ili9341 import Display, color565
 from machine import Pin, SPI
 
-from xglcd_font import XglcdFont
+from display_modules.xglcd_font import XglcdFont
 
 class ILI9341Display :
     def __init__ (self , **kwargs) :

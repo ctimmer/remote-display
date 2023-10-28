@@ -184,26 +184,36 @@ class RemoteDisplay (DEVICE_DISPLAY) :
         self.area_reload (self.get_base_area ())
 
     def update_area (self, **kwargs) :
-        if "area" not in kwargs :
-            print ("'area' parameter missing", kwargs)
+        area_id = None
+        if "area" in kwargs :
+            area_id = kwargs ["area"]
+        elif "area_id" in kwargs :
+            area_id = kwargs ["area_id"]
+        else :
+            print ("'area/area_id' parameter missing", kwargs)
             print ("udate_area kwargs:", kwargs)
             return
-        area_id = kwargs ["area"]
+        ## area_id = kwargs ["area"]
         if area_id not in self.areas :
             print ("'area_id' invalid:", area_id)
             return
         self.areas[area_id].update (**kwargs)
-        #area = self.areas[area_id]
-        #area.update (**kwargs)
     def process_update_queue (self, queue) :
         while not queue.empty_queue() :
             queue_entry = queue.pop_queue()
+            #print (queue_entry)
             if "method" not in queue_entry :
                 print ("process_update_queue: 'method' entry missing")
                 continue
             method = queue_entry["method"]
+            #print ("method:",method)
             if method == "update_area" :
-                self.update_area (**queue_entry)
+                self.update_area (**queue_entry["params"])
+            elif method == "update_area_list" :
+                #print ("update_area_list")
+                for queue_item in queue_entry["params"] :
+                    #print (queue_item)
+                    self.update_area (**queue_item)
             else :
                 print ("process_update_queue: Unknown method:", method)
 
@@ -214,15 +224,6 @@ class RemoteDisplay (DEVICE_DISPLAY) :
         if len (self.page_by_index) <= 1 :
             self.change_active_page_id (page_id)    # Set 1st page active
 
-    '''
-    def page_by_name (self, page_name) :
-        self.pages.change_active_page_id (page_name)
-        #print ("page_by_name:",self.page_names)
-        self.screen_reload ()
-    def page_by_index (self, page_index) :
-        self.pages.change_active_page_index (page_index)
-        self.screen_reload ()
-    '''
     def change_active_page_id (self, page_id, reload = False) :
         if not reload \
         and page_id == self.active_page_id :
@@ -230,9 +231,9 @@ class RemoteDisplay (DEVICE_DISPLAY) :
         self.active_page_id = page_id
         self.active_base_area = self.page_by_name [page_id]
         self.screen_reload ()
-    def change_active_page_index (self, page_index) :
+    def change_active_page_index (self, page_index, reload = False) :
         page_id = self.page_by_index [page_index].page_id
-        self.change_active_page_id (page_id)
+        self.change_active_page_id (page_id, reload = reload)
     def page_id_is_active (self, page_id) :
         return page_id == self.active_page_id
     def get_base_area (self) :
