@@ -286,8 +286,9 @@ class RemoteArea :
                   area) :
         super().__init__ ()
         self.remote_display = remote_display
-        self.local_second_offset = self.utc_offset * 3600
-        self.next_ntptime_ms = time.ticks_add (time.ticks_ms (), (self.ntptime_interval_minutes * 3600))
+        RemoteArea.local_second_offset = RemoteArea.utc_offset * 3600
+        RemoteArea.next_ntptime_ms = time.ticks_add (time.ticks_ms (),
+                                               (RemoteArea.ntptime_interval_minutes * 3600))
         #self.page = area.page ()  # REMOVE
         self.page_id = area["page_id"]
         parent_hpos = 0
@@ -367,6 +368,12 @@ class RemoteArea :
         self.ymax = (self.ymin + self.ylen) - 1
         self.xmid = self. xmin + round (self.xlen / 2)
         self.ymid = self. ymin + round (self.ylen / 2)
+    #----
+    #---- Called after the displays are initialized
+    #---- may not be implemented
+    #----
+    def post_init (self) :
+        pass
 
     def add_area (self, area) :
         if area is not None :
@@ -435,15 +442,16 @@ class RemoteArea :
     def get_now (self ,
                  format_type = "t"):
         curr_ms = time.ticks_ms ()
-        #print ("get_now:",curr_ms, self.next_ntptime_ms)
-        if time.ticks_diff (curr_ms, self.next_ntptime_ms) >= 0 :
+        #print ("get_now:",curr_ms, RemoteArea.next_ntptime_ms)
+        if time.ticks_diff (curr_ms, RemoteArea.next_ntptime_ms) >= 0 :
             #print ("get_now: getting ntptime")
             try:
                 ntptime.settime()
             except:
                 pass
-            self.next_ntptime_ms = time.ticks_add (curr_ms, (self.ntptime_interval_minutes * 3600))
-        return array ("i", time.gmtime(time.time() + (self.local_second_offset)))
+            RemoteArea.next_ntptime_ms = time.ticks_add (curr_ms,
+                                                   (RemoteArea.ntptime_interval_minutes * 3600))
+        return array ("i", time.gmtime(time.time() + (RemoteArea.local_second_offset)))
 
     def setup_sysfont (self ,
                        scale = None ,

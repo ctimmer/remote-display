@@ -177,6 +177,7 @@ class RemoteDisplay (DEVICE_DISPLAY) :
     def area_reload (self, area) :
         #if not area.page_is_active () :
             #return
+        print ("area_reload:",area)
         area.reload ()
 
     def screen_reload (self) :
