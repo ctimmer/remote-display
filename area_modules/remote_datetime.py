@@ -1,7 +1,16 @@
 import time
-import ntptime
 import re
 from array import *
+
+try :
+    import ntptime
+except :
+    class NTPTime :
+        def __init__ (self) :
+            print ("Set up dummy ntptime")
+        def settime (self) :
+            pass # Doesn't do anything - not needed
+    ntptime = NTPTime ()
 
 from area_modules.remote_area import RemoteArea
 

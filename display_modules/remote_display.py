@@ -28,9 +28,13 @@ import gc
 import time
 import random
 import re
+import json as json
 
-from machine import Pin, SPI
-import ujson as json
+try :
+    from machine import Pin, SPI
+except :
+    print ("import machine Failed")
+
 
 from display_config import *
 
@@ -155,6 +159,10 @@ class RemoteDisplay (DEVICE_DISPLAY) :
         self.fonts [font_id] = super().font_initialize (file_name, width, height)
         if self.font_default == None :
             self.font_default = self.fonts [font_id]    # first font
+    def add_font_specs (self, font_id, spec_list) :
+        self.fonts [font_id] = spec_list
+        if self.font_default == None :
+            self.font_default = self.fonts [font_id]    # first font
     #---- Load image
     def add_image (self, image_id, file_name, width, height, ramdisk_file_name = None) :
         image_file = file_name
@@ -177,7 +185,7 @@ class RemoteDisplay (DEVICE_DISPLAY) :
     def area_reload (self, area) :
         #if not area.page_is_active () :
             #return
-        print ("area_reload:",area)
+        #print ("area_reload:",area)
         area.reload ()
 
     def screen_reload (self) :

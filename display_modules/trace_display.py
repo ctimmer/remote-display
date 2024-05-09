@@ -26,6 +26,25 @@
 import sys
 import time
 
+if not hasattr (time, "ticks_ms") :
+    from types import MethodType
+    import time as time
+    def ticks_ms(self):
+        return int (round (time.time () * 1000))
+    def ticks_us(self):
+        return int (round (time.time ()))
+    def ticks_add(self, ms_1, ms_2):
+        return ms_1 + ms_2
+    def ticks_diff(self, ms_1, ms_2):
+        return ms_1 - ms_2
+    def sleep_ms (self, ms_1) :
+        return time.sleep (ms_1 / 1000)
+    time.ticks_ms = MethodType (ticks_ms, time)
+    time.ticks_us = MethodType (ticks_us, time)
+    time.ticks_add = MethodType (ticks_add, time)
+    time.ticks_diff = MethodType (ticks_diff, time)
+    time.sleep_ms = MethodType (sleep_ms, time)
+
 #from ili9341_display import ILI9341Display
 from display_config import *
 

@@ -1,8 +1,30 @@
 #
 
 import time
-import ntptime
 from array import array
+
+if not hasattr (time, "ticks_ms") :
+    from types import MethodType
+    import time as time
+    def ticks_ms(self):
+        return int (round (time.time () * 1000))
+    def ticks_add(self, ms_1, ms_2):
+        return ms_1 + ms_2
+    def ticks_diff(self, ms_1, ms_2):
+        return ms_1 - ms_2
+    def sleep_ms (self, ms_1) :
+        return time.sleep (ms_1 / 1000)
+    time.ticks_ms = MethodType (ticks_ms, time)
+    time.ticks_add = MethodType (ticks_add, time)
+    time.ticks_diff = MethodType (ticks_diff, time)
+    time.sleep_ms = MethodType (sleep_ms, time)
+
+try :
+    import ntptime
+except :
+    class ntptime () :
+        def __init__ (self) :
+            pass
 
 import display_config
 
@@ -333,7 +355,7 @@ class RemoteArea :
         #
         if "borderwidth" in area :
             self.borderwidth = area ["borderwidth"]
-        if "bordercolorrbg" in area :
+        if "bordercolorrgb" in area :
             self.bordercolor = remote_display.convert_rgb (*area["bordercolorrgb"])
         elif "bordercolorname" in area :
             self.bordercolor = remote_display.get_color_by_name (area ["bordercolorname"])

@@ -30,7 +30,7 @@ class TKINTERDisplay :
                                     "hlines" : "hlines"
                                     }
         self.pixel_params = {
-                            "color" : "color"
+                            "color" : "fill"
                             }
         self.pixel_params.update (xy_params)
         self.text_params = {
@@ -194,11 +194,22 @@ class TKINTERDisplay :
         for id in kwargs :
             if id in self.text_params :
                 named_args [self.text_params [id]] = kwargs [id]
+        pos_args = [(named_args["x"] * self.display_scale, named_args["y"] * self.display_scale),
+                    (named_args["x"] * self.display_scale, named_args["y"] * self.display_scale)]
+        option_args = {
+            }
+        for id in named_args :
+            if id in ["fill"] :
+                option_args [id] = named_args [id]
+        if "fill" in option_args :
+            option_args ["fill"] = self.get_canvas_color (option_args["fill"])
         #self.display.draw_pixel (**named_args)
+        self.display.create_line (*pos_args, **option_args)
+        '''
         self.display.create_line ((named_args["x"] * self.display_scale, named_args["y"] * self.display_scale),
                                   (named_args["x"] * self.display_scale, named_args["y"] * self.display_scale),
                                   fill = named_args["color"])
-
+        '''
     '''
         def draw_polygon(self, sides, x0, y0, r, color, rotate=0):
     '''
@@ -281,32 +292,32 @@ class TKINTERDisplay :
                     "y" : 0 ,
                     "h" : 0 ,
                     "w" : 0 ,
-                    "color" : "black"
+                    "outline" : "black"
                     }
         for id in kwargs :
             if id in self.rectangle_params :
                 named_args [self.rectangle_params [id]] = kwargs [id]
         #print ("rectangle named_args:", named_args)
-        #self.display.draw_rectangle(**named_args)
-        x2 = named_args ["x"] + named_args ["w"]
-        y2 = named_args ["y"] + named_args ["h"]
-        #fill = self.get_canvas_color (named_args["color"])
-        #named_args["color"] = self.get_canvas_color (named_args["color"])
-        if "fill" in named_args :
-            named_args ["fill"] = self.get_canvas_color (named_args["fill"])
-        self.display.create_rectangle ((named_args["x"] * self.display_scale, named_args["y"] * self.display_scale) ,
-                                        (x2 * self.display_scale, y2 * self.display_scale) ,
-                                        fill = "" ,
-                                        outline = named_args["fill"] ,
-                                        width = 1)
+        x2 = named_args ["x"] + (named_args ["w"] - 0)
+        y2 = named_args ["y"] + (named_args ["h"] - 0)
+        pos_args = [named_args["x"], named_args["y"] * self.display_scale ,
+                    x2, y2 * self.display_scale]
+        option_args = {
+            "width" : 1
+            }
+        for id in named_args :
+            if id in ["fill"] :
+                option_args ["outline"] = named_args [id]
+        if "outline" in option_args :
+            option_args ["outline"] = self.get_canvas_color (option_args["outline"])
+        self.display.create_rectangle (*pos_args, **option_args)
+        #print ("rectangle_fill:",pos_args, option_args)
+
     '''
     def fill_rectangle(self, x, y, w, h, color):
     '''
     def rectangle_fill (self, **kwargs) :
-        color = None
-        if "color" in kwargs :
-            color = kwargs ["color"]
-            #print ("rf:",color)
+        #print ("rec_fill:", kwargs)
         named_args = {
                     "x" : 0 ,
                     "y" : 0 ,
@@ -319,16 +330,27 @@ class TKINTERDisplay :
                 named_args [self.rectangle_params [id]] = kwargs [id]
         #print ("rec_fill:", named_args)
         #self.display.fill_rectangle(**named_args)
-        x2 = named_args ["x"] + named_args ["w"]
-        y2 = named_args ["y"] + named_args ["h"]
-        #print ((named_args["x"] * self.display_scale, named_args["y"] * self.display_scale),
-        #                              (x2 * self.display_scale, y2 * self.display_scale))
-        if "fill" in named_args :
-            named_args ["fill"] = self.get_canvas_color (named_args["fill"])
+        x2 = named_args ["x"] + (named_args ["w"] - 0)
+        y2 = named_args ["y"] + (named_args ["h"] - 0)
+        pos_args = [named_args["x"] * self.display_scale, named_args["y"] * self.display_scale ,
+                    x2 * self.display_scale, y2 * self.display_scale]
+        option_args = {
+            "width" : 0
+            }
+        for id in named_args :
+            if id in ["fill"] :
+                option_args [id] = named_args [id]
+        if "fill" in option_args :
+            option_args ["fill"] = self.get_canvas_color (option_args["fill"])
+        self.display.create_rectangle (*pos_args, **option_args)
+        print ("rectangle_fill:",pos_args, option_args)
+        '''
         self.display.create_rectangle ((named_args["x"] * self.display_scale, named_args["y"] * self.display_scale),
                                       (x2 * self.display_scale, y2 * self.display_scale),
                                       fill = self.get_canvas_color (named_args["fill"]) ,
                                        width = 0)
+        '''
+
     '''
     def draw_circle(self, x0, y0, r, color):
     '''
