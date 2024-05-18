@@ -78,8 +78,7 @@ class TKINTERDisplay :
                                 "rotate" : "rotate"
                                 }
         self.image_params = {
-                            "path" : "path" ,
-                            "file_name" : "path"
+                            "image_object" : "image_object"
                             }
         self.image_params.update (xy_params)
         self.image_params.update (length_params)
@@ -390,19 +389,20 @@ class TKINTERDisplay :
     def draw_image(self, path, x=0, y=0, w=320, h=240):
     '''
     def image (self, **kwargs) :
-        #print ("image kwargs:", kwargs)
+        print ("image kwargs:", kwargs)
+        print ("image params:", self.image_params)
         named_args = {
-            "path" : None ,
+            "image_object" : None ,
             "x" : None ,
-            "y" : None ,
-            "w" : None ,
-            "h" : None
+            "y" : None
             }
         for id in kwargs :
             if id in self.image_params :
                 named_args [self.image_params [id]] = kwargs [id]
-        self.display.draw_image(**named_args)
-
+        self.display.create_image (named_args["x"],
+                                    named_args ["y"],
+                                    image = named_args["image_object"], anchor = "nw")
+#display.create_image(50, 50, image=photo, anchor = "nw")
     #-------------------------------------------------------------------------------        
     def convert_rgb (self, red, green, blue) :    # _16bit from below
         return ((red & 0b11111000) << 8) | ((green & 0b11111100) << 3) | (blue >> 3)

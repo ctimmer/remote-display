@@ -163,7 +163,7 @@ class RemoteDisplay (DEVICE_DISPLAY) :
         self.fonts [font_id] = spec_list
         if self.font_default == None :
             self.font_default = self.fonts [font_id]    # first font
-    #---- Load image
+    #---- Load raw image
     def add_image (self, image_id, file_name, width, height, ramdisk_file_name = None) :
         image_file = file_name
         #
@@ -181,11 +181,10 @@ class RemoteDisplay (DEVICE_DISPLAY) :
         self.images [image_id] = {"file_name" : image_file ,
                                   "width" : width ,
                                   "height" : height}
-            
+    def add_image_object (self, image_id, image_object) :
+        self.images [image_id] = {"image_object" : image_object}
+
     def area_reload (self, area) :
-        #if not area.page_is_active () :
-            #return
-        #print ("area_reload:",area)
         area.reload ()
 
     def screen_reload (self) :
