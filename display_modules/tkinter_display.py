@@ -5,6 +5,7 @@ import webcolors
 
 class TKINTERDisplay :
     def __init__ (self , **kwargs) :
+        self.convert_rgb = self.convert_rgb_16bit
         self.display_scale = 1
         self.display_width = 128
         self.display_height = 32
@@ -26,7 +27,7 @@ class TKINTERDisplay :
                         "width" : "w"
                         }
         self.screen_clear_params = {
-                                    "color" : "color" ,
+                                    "color" : "fill" ,
                                     "hlines" : "hlines"
                                     }
         self.pixel_params = {
@@ -82,6 +83,7 @@ class TKINTERDisplay :
                             }
         self.image_params.update (xy_params)
         self.image_params.update (length_params)
+        self.image_counter = 0
     def initialize_display (self, **kwargs) :
         display = None
         display_object_params = {
@@ -145,8 +147,7 @@ class TKINTERDisplay :
             elif self.display_scale > 10 :
                 self.display_scale = 10
         if "display_object" in display_object_args :
-            self.display = display_object_args ["display_object"]
-            return self.display
+            display = display_object_args ["display_object"]
         #---- Handle other interfaces here
         else :
             pass # error
@@ -157,21 +158,40 @@ class TKINTERDisplay :
         return XglcdFont(file_name, width, height)
     '''
     def clear(self, color=0, hlines=8):
+        named_args = {
+                    "x" : 0 ,
+                    "y" : 0 ,
+                    "h" : 0 ,
+                    "w" : 0 ,
+                    "outline" : "black"
+                    }
     '''
     def screen_clear (self, **kwargs) :
         named_args = {
-                    "color" : "white"
+                    "width" : 0 ,
+                    "fill" : "BLACK"
                     }
+        pos_args = [
+            0 ,
+            0 ,
+            self.display_width ,
+            self.display_height
+            ]
         for id in kwargs :
             if id in self.screen_clear_params :
                 named_args [self.screen_clear_params [id]] = kwargs [id]
-        #self.display.clear (**named_args)
+        named_args ["fill"] = self.get_canvas_color (named_args["fill"])
+        #print (pos_args, named_args)
+        self.display.delete ("all")
+        self.display.create_rectangle (*pos_args, **named_args)
+        '''
         self.display.create_rectangle ((0, 0),
                                       (self.display_width * self.display_scale,
                                            self.display_height * self.display_scale),
                                        fill = self.get_canvas_color (named_args["color"]) ,
                                        width = 0)
                                       #fill = named_args["color"])
+        '''
     def screen_off (self) :
         """Turn display off."""
         #self.display.write_cmd (self.display.DISPLAY_OFF)
@@ -193,8 +213,8 @@ class TKINTERDisplay :
         for id in kwargs :
             if id in self.text_params :
                 named_args [self.text_params [id]] = kwargs [id]
-        pos_args = [(named_args["x"] * self.display_scale, named_args["y"] * self.display_scale),
-                    (named_args["x"] * self.display_scale, named_args["y"] * self.display_scale)]
+        pos_args = [(named_args["x"], named_args["y"]),
+                    (named_args["x"], named_args["y"])]
         option_args = {
             }
         for id in named_args :
@@ -204,27 +224,6 @@ class TKINTERDisplay :
             option_args ["fill"] = self.get_canvas_color (option_args["fill"])
         #self.display.draw_pixel (**named_args)
         self.display.create_line (*pos_args, **option_args)
-        '''
-        self.display.create_line ((named_args["x"] * self.display_scale, named_args["y"] * self.display_scale),
-                                  (named_args["x"] * self.display_scale, named_args["y"] * self.display_scale),
-                                  fill = named_args["color"])
-        '''
-    '''
-        def draw_polygon(self, sides, x0, y0, r, color, rotate=0):
-    '''
-    def polygon (self, **kwargs) :
-        #print ("text kwargs:", kwargs)
-        named_args = {
-                    "sides" : 6 ,
-                    "x0" : 5 ,
-                    "y0" : 5 ,
-                    "r" : 4 ,
-                    "color" : None
-                    }
-        for id in kwargs :
-            if id in self.polygon_params :
-                named_args [self.polygon_params [id]] = kwargs [id]
-        self.display.draw_polygon (**named_args)
 
     '''
     def draw_text(self, x, y, text, font, color,  background=0,
@@ -260,7 +259,6 @@ class TKINTERDisplay :
         self.display.create_text (*pos_args, **option_args)
 
     '''
-    def draw_line(self, x1, y1, x2, y2, color):
     canvas.create_line((50, 50), (100, 100), width=4, fill='red')
     '''
     def line (self, **kwargs) :
@@ -278,8 +276,8 @@ class TKINTERDisplay :
         if "fill" in option_args :
             option_args ["fill"] = self.get_canvas_color (option_args["fill"])
         #print ("text named_args:", named_args)
-        self.display.create_line ((named_args["x1"] * self.display_scale, named_args["y1"] * self.display_scale),
-                                  (named_args["x2"] * self.display_scale, named_args["y2"] * self.display_scale),
+        self.display.create_line ((named_args["x1"], named_args["y1"]),
+                                  (named_args["x2"], named_args["y2"]),
                                   fill = self.get_canvas_color (named_args["fill"]))
     '''
     def draw_rectangle(self, x, y, w, h, color):
@@ -297,10 +295,10 @@ class TKINTERDisplay :
             if id in self.rectangle_params :
                 named_args [self.rectangle_params [id]] = kwargs [id]
         #print ("rectangle named_args:", named_args)
-        x2 = named_args ["x"] + (named_args ["w"] - 0)
-        y2 = named_args ["y"] + (named_args ["h"] - 0)
-        pos_args = [named_args["x"], named_args["y"] * self.display_scale ,
-                    x2, y2 * self.display_scale]
+        x2 = named_args ["x"] + (named_args ["w"])
+        y2 = named_args ["y"] + (named_args ["h"])
+        #pos_args = [named_args["x"], named_args["y"], x2, y2]
+        pos_args = [named_args["x"] + 1, named_args["y"] + 1, x2, y2]
         option_args = {
             "width" : 1
             }
@@ -310,7 +308,7 @@ class TKINTERDisplay :
         if "outline" in option_args :
             option_args ["outline"] = self.get_canvas_color (option_args["outline"])
         self.display.create_rectangle (*pos_args, **option_args)
-        #print ("rectangle_fill:",pos_args, option_args)
+        #print ("create_rectangle:", pos_args, option_args)
 
     '''
     def fill_rectangle(self, x, y, w, h, color):
@@ -329,10 +327,10 @@ class TKINTERDisplay :
                 named_args [self.rectangle_params [id]] = kwargs [id]
         #print ("rec_fill:", named_args)
         #self.display.fill_rectangle(**named_args)
-        x2 = named_args ["x"] + (named_args ["w"] - 0)
-        y2 = named_args ["y"] + (named_args ["h"] - 0)
-        pos_args = [named_args["x"] * self.display_scale, named_args["y"] * self.display_scale ,
-                    x2 * self.display_scale, y2 * self.display_scale]
+        x2 = named_args ["x"] + (named_args ["w"])
+        y2 = named_args ["y"] + (named_args ["h"])
+        #pos_args = [named_args["x"], named_args["y"], x2, y2]
+        pos_args = [named_args["x"] + 1, named_args["y"] + 1, x2 + 1, y2 + 1]
         option_args = {
             "width" : 0
             }
@@ -342,74 +340,55 @@ class TKINTERDisplay :
         if "fill" in option_args :
             option_args ["fill"] = self.get_canvas_color (option_args["fill"])
         self.display.create_rectangle (*pos_args, **option_args)
-        print ("rectangle_fill:",pos_args, option_args)
-        '''
-        self.display.create_rectangle ((named_args["x"] * self.display_scale, named_args["y"] * self.display_scale),
-                                      (x2 * self.display_scale, y2 * self.display_scale),
-                                      fill = self.get_canvas_color (named_args["fill"]) ,
-                                       width = 0)
-        '''
-
-    '''
-    def draw_circle(self, x0, y0, r, color):
-    '''
-    def circle (self, **kwargs) :
-        #color = self.color_default
-        #if "color" in kwargs :
-            #color = kwargs ["color"]
-        named_args = {
-                    "x0" : 10 ,
-                    "y0" : 10 ,
-                    "r" : 10 ,
-                    "color" : None
-                    }
-        for id in kwargs :
-            if id in self.circle_params :       # same as rectangle
-                named_args [self.circle_params [id]] = kwargs [id]
-        self.display.draw_circle(**named_args)
-    '''
-    def fill_circle(self, x0, y0, r, color):
-    '''
-    def circle_fill (self, **kwargs) :
-        #color = self.color_default
-        #if "color" in kwargs :
-            #color = kwargs ["color"]
-        named_args = {
-                    "x0" : 10 ,
-                    "y0" : 10 ,
-                    "r" : 10 ,
-                    "color" : None
-                    }
-        for id in kwargs :
-            if id in self.circle_params :       # same as rectangle
-                named_args [self.circle_params [id]] = kwargs [id]
-        self.display.fill_circle(**named_args)
+        #print ("create_rectangle:", pos_args, option_args)
 
     '''
     def draw_image(self, path, x=0, y=0, w=320, h=240):
     '''
+    def image_attribute (self) :
+        if self.image_counter > 1000 :
+            self.image_counter = 1
+        else :
+            self.image_counter += 1
+        return "RemImage_" + str (self.image_counter)
+    #--------------------------
     def image (self, **kwargs) :
-        print ("image kwargs:", kwargs)
-        print ("image params:", self.image_params)
+        #print ("## image kwargs:", kwargs)
+        from PIL import ImageTk, Image
         named_args = {
-            "image_object" : None ,
-            "x" : None ,
-            "y" : None
+            "x" : 0 ,
+            "y" : 0
             }
         for id in kwargs :
             if id in self.image_params :
                 named_args [self.image_params [id]] = kwargs [id]
-        self.display.create_image (named_args["x"],
-                                    named_args ["y"],
-                                    image = named_args["image_object"], anchor = "nw")
-#display.create_image(50, 50, image=photo, anchor = "nw")
-    #-------------------------------------------------------------------------------        
+        image_attr = self.image_attribute ()
+        python_image = kwargs ["image_object"]
+        setattr (self.display, image_attr, ImageTk.PhotoImage(python_image))
+        option_args = {
+            "image" : getattr (self.display, image_attr) ,
+            "anchor" : "nw"
+            }
+        pos_args = (
+            named_args["x"],
+            named_args ["y"]
+            )
+        #print ("## TK display: image", pos_args, option_args)
+        self.display.create_image (*pos_args,
+                                    **option_args)
+
+    #---------------------------------------------------------------------------
+    ''' defined in __INIT__
     def convert_rgb (self, red, green, blue) :    # _16bit from below
-        return ((red & 0b11111000) << 8) | ((green & 0b11111100) << 3) | (blue >> 3)
+    '''
     def convert_rgb_8bit (self, red, green, blue) :
-        return ((red & 0b11100000) << 5) | ((green & 0b11100000) << 2) | ((blue & 0b11000000) >> 6)
+        return ((red & 0b11100000) << 5) \
+                | ((green & 0b11100000) << 2) \
+                | ((blue & 0b11000000) >> 6)
     def convert_rgb_16bit (self, red, green, blue) :
-        return ((red & 0b11111000) << 8) | ((green & 0b11111100) << 3) | (blue >> 3)
+        return ((red & 0b11111000) << 8) \
+                | ((green & 0b11111100) << 3) \
+                | (blue >> 3)
     def convert_rgb_24bit (self, red, green, blue) :
         return (red << 15) | (green << 7) | blue
 
@@ -430,13 +409,12 @@ class TKINTERDisplay :
     #    0brrrrrggggggbbbbb
     #    0brrrrr000gggggg00bbbbb000
     #
-
     def breakout_rgb16 (self, rgb16) :
         return (rgb16 & 0b1111100000000000) >> 8 , \
                (rgb16 & 0b0000011111100000) >> 3 , \
                (rgb16 & 0b0000000000011111) << 3
     def get_closest_color (self, rgb_in):
-        #print ("####################get_color_name:", rgb_color)
+        #print ("####### get_closest_color:", rgb_in)
         closest_color = "black"
         rgb_color = (0,0,0)
         if type (rgb_in) is tuple \
@@ -450,8 +428,12 @@ class TKINTERDisplay :
             closest_color = webcolors.rgb_to_name(rgb_color)
         except ValueError:
             closest_value = 0xffffff
-            for key, name in webcolors.CSS3_HEX_TO_NAMES.items():
-                r_c, g_c, b_c = webcolors.hex_to_rgb(key)
+            # pre python 3.10:
+            #for key, name in webcolors.CSS3_HEX_TO_NAMES.items():
+            for name in webcolors.names("css3") :
+                r_c, g_c, b_c = webcolors.name_to_rgb (name)
+                # pre python 3.10:
+                #r_c, g_c, b_c = webcolors.hex_to_rgb(key)
                 val = ((r_c - rgb_color[0]) ** 2) \
                         + ((g_c - rgb_color[1]) ** 2) \
                         + ((b_c - rgb_color[2]) ** 2)
@@ -470,10 +452,8 @@ class TKINTERDisplay :
             canvas_color = rgb16_color.lower ()
         elif type (rgb16_color) is int :
             #print ("get_canvas_color: int")
-            canvas_color = self.get_closest_color (self.breakout_rgb16 (rgb16_color))
-                                             #((rgb16_color & 0b1111100000000000) >> 8 ,
-                                             #(rgb16_color  & 0b0000011111100000) >> 3 ,
-                                             #(rgb16_color  & 0b0000000000011111) << 3))
+            canvas_color = self.get_closest_color \
+                                (self.breakout_rgb16 (rgb16_color))
         #print ("get_canvas_color:", canvas_color)
         return canvas_color
 

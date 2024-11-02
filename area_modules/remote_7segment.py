@@ -13,9 +13,9 @@ class Remote7Segment (RemoteArea) :
         super().__init__ (remote_display, area_config)
         self.show_border_color = remote_display.get_color_name ("TEAL")
         self.digit_size = "S"
-        self.v_segment_length = 4
-        self.h_segment_length = 4 
-        self.segment_width = 2
+        self.v_segment_len = 4   # <======================= len
+        self.h_segment_len = 4 
+        self.segment_wid = 2
         self.spacing = 1
         #self.color = remote_display.color_by_name ("WHITE")
         self.bold = False
@@ -26,7 +26,7 @@ class Remote7Segment (RemoteArea) :
         #self.set_parameters  (digit_size="S" ,
                               #v_segment_length=v_segment_length ,
                               #h_segment_length=h_segment_length ,
-                              #segment_width=segment_width ,
+                              #segment_wid=segment_wid ,
                               #spacing=spacing ,
                               #bold=bold ,
                               #color=color)

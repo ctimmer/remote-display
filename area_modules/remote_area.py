@@ -427,6 +427,7 @@ class RemoteArea :
             xlen -= 2
             ylen -= 2
         #---- Padding
+        #print ("Padding: start")
         for i in range (self.paddingwidth) :
             if self.backgroundcolor is not None :
                 self.remote_display.rectangle (x = x ,
@@ -438,6 +439,7 @@ class RemoteArea :
             y += 1
             xlen -= 2
             ylen -= 2
+        #print ("Padding: end")
 
     def reload_areas (self) :
         for area in self.areas :

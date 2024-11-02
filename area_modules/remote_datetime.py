@@ -40,16 +40,17 @@ class CurrentDateTime () :
 class RemoteDateTime (RemoteArea) :
     def __init__ (self,
                   remote_display,
-                  area_config) :
+                  area_config ,
+                  utc_offset = -8) :    # Alaska Standard Time
         super().__init__ (remote_display, area_config)
         self.next_ntptime_ms = time.ticks_ms ()
-        self.utc_offset = -8     # Alaska
+        self.utc_offset = utc_offset
         self.time_offset = self.utc_offset * 3600
-        #self.current_time = CurrentDateTime (-8)
         self.format_types = {
-            "d" : "%Y-%m-%d" ,
-            "t" : "%H:%M" ,
-            "dt" : "%Y-%m-%d %H:%M"
+            "d" : "%Y-%m-%d" ,          # year mon day
+            "t" : "%H:%M" ,             # hour min
+            "dt" : "%Y-%m-%d %H:%M" ,   # year mon day hour min
+            "ts" : "%Y%m%d%H%M%S"       # All (time stamp)
             }
         self.codes = {
             "%Y" : "{0:04d}" ,
@@ -69,11 +70,10 @@ class RemoteDateTime (RemoteArea) :
             if format_type in self.format_types :
                 self.format_str = self.format_types [format_type]
         self.format_regex = re.compile ("%Y|%m|%d|%H|%M|%S|%%")
-        #if "font" not in area_config :
-            #self.font = None
-            #self.setup_sysfont ()
-        self.text_current = ""
-        self.show_border_color = remote_display.get_color_name ("LIME")
+        if "text" in area_config :
+            self.text_current = area_config ["text"]
+        else :
+            self.text_current = ""
 
     def sub_codes (self, match) :
         code = match.group(0)
@@ -84,7 +84,9 @@ class RemoteDateTime (RemoteArea) :
     def update (self, **kwargs) :
         #print ("RemoteDateTime: update")
         now = self.get_now ()
-        format_text = re.sub (self.format_regex, self.sub_codes, self.format_str)
+        format_text = re.sub (self.format_regex,
+                                self.sub_codes,
+                                self.format_str)
         text = format_text.format (*now)
         if text != self.text_current :
             #print (text, self.text_current)
@@ -112,8 +114,8 @@ class RemoteDateTime (RemoteArea) :
                                       background = self.backgroundcolor)
         else :
             text = self.text_current
-            if len (text) > self.text_length_max :
-                text = text [0:self.text_length_max]
+            #if len (text) > self.text_length_max :
+                #text = text [0:self.text_length_max]
             self.text_sysfont (text ,
                                self.textcolor)
                                #self.scale ,
@@ -122,3 +124,4 @@ class RemoteDateTime (RemoteArea) :
             self.reload_areas ()
 
 ## end RemoteDateTime ##
+

@@ -29,7 +29,7 @@ class RemoteLamp (RemoteArea) :
             elif "lampcolorname" in color :
                 lamp["lampcolor"] = self.remote_display.get_color_name (color["lampcolorname"])
             if "textcolorrgb" in color :
-                lamp["textcolor"] = super().convert_rgb (*color["textcolorrgb"])
+                lamp["textcolor"] = self.remote_display.convert_rgb (*color["textcolorrgb"])
             elif "textcolorname" in color :
                 lamp["textcolor"] = self.remote_display.get_color_name (color["textcolorname"])
             if "text" in color :

@@ -1,4 +1,10 @@
 # Byte-compiled / optimized / DLL files
+# My stuff
+.vscode/
+pimoroni/
+screens/
+trash/
+
 __pycache__/
 *.py[cod]
 *$py.class

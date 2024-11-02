@@ -39,7 +39,9 @@ class RemoteImage (RemoteArea) :
                     "hpos" : self.xmin ,
                     "vpos" : self.ymin
                     }
-        image_args.update (self.remote_display.images[self.image_id_current])
+        image_dict = self.remote_display.get_image_object (self.image_id_current)
+        image_args ["image_object"] = image_dict ["image_object"]
+        #image_args.update (self.remote_display.images[self.image_id_current])
         self.remote_display.image (**image_args)
         if reload_all :
             self.reload_areas ()

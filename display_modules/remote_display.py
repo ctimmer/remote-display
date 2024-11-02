@@ -164,9 +164,18 @@ class RemoteDisplay (DEVICE_DISPLAY) :
         if self.font_default == None :
             self.font_default = self.fonts [font_id]    # first font
     #---- Load raw image
-    def add_image (self, image_id, file_name, width, height, ramdisk_file_name = None) :
-        image_file = file_name
-        #
+    def add_image (self,
+                    image_id ,
+                    file_name ,
+                    width = None ,
+                    height = None ,
+                    ramdisk_file_name = None) :
+        image_dict = {
+            "image_file" : file_name
+            }
+        if width is not None :
+            image_dict ["width"] = width
+            image_dict ["height"] = height
         if ramdisk_file_name is not None :
             try :
             #if True :
@@ -178,11 +187,16 @@ class RemoteDisplay (DEVICE_DISPLAY) :
             except Exception :
                 print ("copy to ramdisk failed:", file_name)
         #
+        self.images [image_id] = image_dict
+        '''
         self.images [image_id] = {"file_name" : image_file ,
                                   "width" : width ,
                                   "height" : height}
+        '''
     def add_image_object (self, image_id, image_object) :
         self.images [image_id] = {"image_object" : image_object}
+    def get_image_object (self, image_id) :
+        return self.images [image_id]
 
     def area_reload (self, area) :
         area.reload ()
@@ -284,7 +298,7 @@ class RemoteDisplay (DEVICE_DISPLAY) :
     def get_background_color_default (self) :
         return self.background_color_default
     def get_color_by_name (self, color_name) :
-        return self.color_names[color_name]
+        return self.color_names[color_name.upper()]
 
     def show_area (self, area_id = None, show_all = True) :
         area = None
