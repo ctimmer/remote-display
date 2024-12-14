@@ -405,14 +405,25 @@ class TKINTERDisplay :
     def dummy_test (self, mess = "dummy_test") :
         print (mess)
 
-    #
+    # rgb16 5,6,5
     #    0brrrrrggggggbbbbb
     #    0brrrrr000gggggg00bbbbb000
     #
-    def breakout_rgb16 (self, rgb16) :
+    def breakout_rgb16_REMOVE (self, rgb16) :
         return (rgb16 & 0b1111100000000000) >> 8 , \
                (rgb16 & 0b0000011111100000) >> 3 , \
                (rgb16 & 0b0000000000011111) << 3
+    def rgb16_to_rgb24 (self, rgb16) :
+        r = (rgb16 & 0b1111100000000000) >> 11
+        g = (rgb16 & 0b0000011111100000) >> 5
+        b = (rgb16 & 0b0000000000011111)
+        #print (f"===================> RGb16 input: r={r}, g={g}, b={b}")
+        r = int ((r / 0b11111) * 255.0)
+        g = int ((g / 0b111111) * 255.0)
+        b = int ((b / 0b11111) * 255.0)
+        #print (f"RGB24 output: r={r}, g={g}, b={b}")
+        return (r, g, b)
+
     def get_closest_color (self, rgb_in):
         #print ("####### get_closest_color:", rgb_in)
         closest_color = "black"
@@ -421,7 +432,8 @@ class TKINTERDisplay :
         or type (rgb_in) is list :
             rgb_color = rgb_in
         elif type (rgb_in) is int :
-            rgb_color = breakout_rgb16 (rgb_in)
+            rgb_color = self.rgb16_to_rgb24 (rgb_in)
+            #rgb_color = self.breakout_rgb16 (rgb_in)
         else :
             print ("get_closest_color: Invalid rgb_in", rgb_in)
         try:
@@ -453,7 +465,8 @@ class TKINTERDisplay :
         elif type (rgb16_color) is int :
             #print ("get_canvas_color: int")
             canvas_color = self.get_closest_color \
-                                (self.breakout_rgb16 (rgb16_color))
+                                (self.rgb16_to_rgb24 (rgb16_color))
+                                #(self.breakout_rgb16 (rgb16_color))
         #print ("get_canvas_color:", canvas_color)
         return canvas_color
 

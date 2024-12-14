@@ -321,13 +321,13 @@ class RemoteDisplay (DEVICE_DISPLAY) :
             indent = ""
         else :
             indent = "." * level + " "
-        area_specs = " x={:d} w={:d} y={:d} h={:d}) mid=({:d},{:d})".format (area.xmin,
-                                                                       area.xlen,
-                                                                       area.ymin,
-                                                                       area.ylen,
-                                                                       area.xmid,
-                                                                       area.ymid)
-        print (indent + area_id + area_specs)
+        print (f"{indent}{area_id}" \
+                    + f" x={area.xmin}" \
+                    + f" w={area.xlen}" \
+                    + f" y={area.ymin}" \
+                    + f" h={area.ylen}" \
+                    + f" mid=({area.xmid},{area.ymid})")
+        #print (area_specs)
         for child in area.areas :
             self.dump_area (child, level + 1)
     def dump (self) :
