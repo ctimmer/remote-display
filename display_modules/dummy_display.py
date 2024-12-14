@@ -61,7 +61,7 @@ class DummyDisplay () :
         pass
     #
     def convert_rgb (self, r, g, b) :
-        return "rbg({:.d},{:.d},{:,d})".format (r, b, g)
+        return f"rbg({r:d},{g:d},{b:d})"
     #def get_color_name (self, color_name):
         #return color_name
     def get_font_default (self):
