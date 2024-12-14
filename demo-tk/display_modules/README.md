@@ -12,6 +12,8 @@
   - Subclass of tkinter_display.py, dummy_display.py
   - Displays function calls and parameters
 
+## display_config.py
+
 ```
 PARAMETERS = {
     "TRACE_ON" : False ,
@@ -36,3 +38,10 @@ if PARAMETERS["TRACE_ON"] :
 
 ```
 
+- PARAMETERS
+  - TRACE_ON
+    - True: Includes TraceDisplay to print all display function calls and parameter
+    - False: Excludes TraceDislay
+  - DISPLAY_OUT
+    - True: Sends display output to physical display
+    - False: Inhibits output to physical display
