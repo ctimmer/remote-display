@@ -4,9 +4,11 @@
 pimoroni/
 screens/
 trash/
-demo-tk/*.swp
+*.swp
+demo-tk/rem_demo_displays.json
 demo-tk/display_modules/*.py
 demo-tk/area_modules/*.py
+doxygen/
 
 __pycache__/
 *.py[cod]

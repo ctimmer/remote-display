@@ -4,7 +4,7 @@
 ## Need to change this to your remote-display path
 GITHUB_DIR="NEED"
 # example:
-#GITHUB_DIR=~/src/github/remote-display
+# GITHUB_DIR=~/src/github/remote-display
 DEMO_DIR=demo-tk
 
 DISPLAY_MODULES_FILES=(\

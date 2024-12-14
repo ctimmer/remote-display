@@ -36,7 +36,7 @@ except :
     print ("import machine Failed")
 
 
-from display_config import *
+from display_config import DEVICE_DISPLAY
 
 from area_modules.remote_area import RemoteArea
 
