@@ -21,14 +21,14 @@ git clone https://github.com/ctimmer/remote-display.git
 cd remote-display
 ```
 
-**Copy the folowing display modules files from display_modules/ to demo_tk/display_modules/**
+**Copy the following display modules files from display_modules/ to demo_tk/display_modules/**
 
 - remote_display.py
 - tkinter_display.py
 - trace_display.py
 - dummy_display.py
 
-**Copy the folowing area modules files from area_modules/ to demo_tk/area_modules/**
+**Copy the following area modules files from area_modules/ to demo_tk/area_modules/**
 
 - remote_area.py
 - remote_7segment.py
@@ -41,8 +41,6 @@ cd remote-display
 - remote_sysfont.py
 - remote_template.py
 - remote_text.py
-
-gauge
 
 The entire area_modules directory can be copied.
 
@@ -152,8 +150,8 @@ Starting Display            # Display demo screens
   - Display output
     - Displays an outline of each of the areas.
   - Text output
-    - Higherarchy with "."
-    - Area ID, anon = no id
+    - Hierarchy with "."
+    - Area ID, "anon" = no area id
     - X position (absolute) and width
     - Y position (absolute) and height
-    - area midpoint coordinats
+    - area midpoint coordinates

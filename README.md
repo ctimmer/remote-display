@@ -156,9 +156,9 @@ Base class to (almost) all area classes
 
 ### RemoteImage (remote_image.py)
 
-### RemoteLinearGuage (remote_linear_guage.py)
+### RemoteLinearGauge (remote_linear_gauge.py)
 
-### RemoteLinearGuageTicks (remote_linear_guage_ticks.py)
+### RemoteLinearGaugeTicks (remote_linear_gauge_ticks.py)
 
 ### RemoteSwitchPage (remote_switch_page.py)
 
