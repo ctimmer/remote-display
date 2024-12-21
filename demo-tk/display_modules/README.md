@@ -7,7 +7,7 @@
 - tkinter_display.py
   - Interface to tkinter canvas
 - dummy_display.py
-  - No display output if testing without a physical display
+  - No display output for testing without a physical display
 - trace_display.py
   - Subclass of tkinter_display.py, dummy_display.py
   - Displays function calls and parameters

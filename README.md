@@ -2,6 +2,7 @@
 
 Defines a display with fields (type, size, position, etc.) that can be be updated from the local microprocessor or remote clients.
 
+##  **Class Structure**
 
 ## **Basic Operation**
 
