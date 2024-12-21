@@ -4,7 +4,6 @@
 
 This demo simulates 9 320x240 microprocessor compatible displays.
 Each display is independent and can be modified/tested without affecting the other displays.
-
 ## Quick Start
 
 **Download the repository**
@@ -17,7 +16,7 @@ cd remote-display
 **Copy the folowing display modules files from display_modules/ to demo_tk/display_modules/**
 
 - remote_display.py
-- kinter_display.py
+- tkinter_display.py
 - trace_display.py
 - dummy_display.py
 
