@@ -20,8 +20,8 @@ AREA_MODULES_FILES=(\
     "remote_datetime.py" \
     "remote_image.py" \
     "remote_lamp.py" \
-    "remote_linear_guage.py" \
-    "remote_linear_guage_ticks.py" \
+    "remote_linear_gauge.py" \
+    "remote_linear_gauge_ticks.py" \
     "remote_sysfont.py" \
     "remote_template.py" \
     "remote_text.py" \

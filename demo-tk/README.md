@@ -4,6 +4,14 @@
 
 This demo simulates 9 320x240 microprocessor compatible displays.
 Each display is independent and can be modified/tested without affecting the other displays.
+
+## Requirements
+
+- Python3
+- Additional modules
+  - tkinter
+  - PIL, if using image display demo
+
 ## Quick Start
 
 **Download the repository**
@@ -28,17 +36,19 @@ cd remote-display
 - remote_datetime.py
 - remote_image.py
 - remote_lamp.py
-- remote_linear_guage.py
-- remote_linear_guage_ticks.py
+- remote_linear_gauge.py
+- remote_linear_gauge_ticks.py
 - remote_sysfont.py
 - remote_template.py
 - remote_text.py
+
+gauge
 
 The entire area_modules directory can be copied.
 
 **Scripting**
 
-The bash script **setup.sh** in the demo-tk directory will set up links to modules. Edit the script setting **GETHUB_DIR** to the repository directory (see example in script).
+The bash script **setup.sh** in the demo-tk directory will set up symbolic links to modules. Edit the script setting **GETHUB_DIR** to the repository directory (see example in script).
 
 **Running demo-tk**
 
@@ -59,7 +69,7 @@ Text output with added notes:
 import machine Failed           # OK, this is not micropython
 Set up dummy ntptime            # OK, this is not micropython
 tk_display setup                # Initializing demo-tk
-                                # output from the show_area method:
+                                # output from the show_area method (see below):
 anon x=6 w=308 y=6 h=228 mid=(160,120)
 . anon x=10 w=300 y=10 h=14 mid=(160,17)
 . anon x=8 w=76 y=31 h=202 mid=(46,132)
@@ -136,3 +146,14 @@ anon x=6 w=308 y=6 h=228 mid=(160,120)
 .. date_9 x=160 w=151 y=209 h=16 mid=(236,217)
 Starting Display            # Display demo screens
 ```
+
+- **show_area** method
+  - Demos 7,8,9
+  - Display output
+    - Displays an outline of each of the areas.
+  - Text output
+    - Higherarchy with "."
+    - Area ID, anon = no id
+    - X position (absolute) and width
+    - Y position (absolute) and height
+    - area midpoint coordinats
