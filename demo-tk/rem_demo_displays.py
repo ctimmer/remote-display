@@ -763,7 +763,7 @@ demo_4_display = {
         "bordercolorname" : HEADING_BORDERCOLORNAME ,
         "paddingwidth" : HEADING_PADDINGWIDTH ,
         "backgroundcolorname" : HEADING_BACKGROUNDCOLORNAME ,
-        "text" : " DEMO 4 - Linear Guage"
+        "text" : " DEMO 4 - Linear Gauge"
         } ,
         {
         "type" : "container" ,
@@ -799,9 +799,9 @@ demo_4_display = {
             "text" : " 000F"
             } ,
             {
-            "type" : "linearguage" ,
+            "type" : "lineargauge" ,
             "area_id" : "Fdisplay" ,
-            "verticalguage" : True ,
+            "verticalgauge" : True ,
             "rangemin" : -50 ,
             "rangemax" : 250 ,
             "valuecolorname" : "BLUE" ,
@@ -860,9 +860,9 @@ demo_4_display = {
             "text" : " 000C"
             } ,
             {
-            "type" : "linearguage" ,
+            "type" : "lineargauge" ,
             "area_id" : "Cdisplay" ,
-            "verticalguage" : True ,
+            "verticalgauge" : True ,
             "rangemin" : -50 ,
             "rangemax" : 180 ,
             "valuecolorname" : "BLUE" ,
@@ -921,9 +921,9 @@ demo_4_display = {
             "text" : " 000K"
             } ,
             {
-            "type" : "linearguage" ,
+            "type" : "lineargauge" ,
             "area_id" : "Kdisplay" ,
-            "verticalguage" : True ,
+            "verticalgauge" : True ,
             "rangemin" : 200 ,
             "rangemax" : 500 ,
             "valuecolorname" : "BLUE" ,
@@ -958,9 +958,9 @@ demo_4_display = {
         "backgroundcolorname" : "YELLOW" ,
         "areas" : [
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_0" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -973,9 +973,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_1" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -988,9 +988,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_2" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -1003,9 +1003,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_3" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -1018,9 +1018,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_4" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -1033,9 +1033,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_5" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -1048,9 +1048,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_6" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -1063,9 +1063,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_7" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -1078,9 +1078,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_8" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -1093,9 +1093,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_9" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -1108,9 +1108,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_10" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -1123,9 +1123,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_11" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -1138,9 +1138,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_12" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -1153,9 +1153,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_13" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -1168,9 +1168,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_14" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -1183,9 +1183,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_15" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -1198,9 +1198,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_16" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -1213,9 +1213,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_17" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -1228,9 +1228,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_18" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,
@@ -1243,9 +1243,9 @@ demo_4_display = {
                   "value" : 0.0
                   } ,
                   {
-                  "type" : "linearguage" ,
+                  "type" : "lineargauge" ,
                   "area_id" : "trig_19" ,
-                  "verticalguage" : False ,
+                  "verticalgauge" : False ,
                   "rangemin" : DEMO_4_TRIG_RANGEMIN ,
                   "rangemax" : DEMO_4_TRIG_RANGEMAX ,
                   "valuecolorname" : DEMO_4_TRIG_VALUECOLORNAME ,

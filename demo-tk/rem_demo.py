@@ -14,8 +14,8 @@ from area_modules.remote_sysfont import RemoteSysFont
 from area_modules.remote_image import RemoteImage
 from area_modules.remote_lamp import RemoteLamp
 from area_modules.remote_7segment import Remote7Segment
-from area_modules.remote_linear_guage import RemoteLinearGuage
-from area_modules.remote_linear_guage_ticks import RemoteLinearGuageTicks
+from area_modules.remote_linear_gauge import RemoteLinearGauge
+from area_modules.remote_linear_gauge_ticks import RemoteLinearGaugeTicks
 from area_modules.remote_template import RemoteTemplate
 from area_modules.remote_datetime import RemoteDateTime
 
@@ -264,8 +264,8 @@ def demo_4_init () :
                             height = DISPLAY_HEIGHT ,
                             display = demo_canvas)
     display.add_area_type ("sysfont", RemoteSysFont)
-    display.add_area_type ("linearguage", RemoteLinearGuage)
-    display.add_area_type ("linearguageticks", RemoteLinearGuageTicks)
+    display.add_area_type ("lineargauge", RemoteLinearGauge)
+    display.add_area_type ("lineargaugeticks", RemoteLinearGaugeTicks)
     setup_display (display, demo_id + "_display")
     trig_in_value = 0.0
     trig_increment = (2.0 * math.pi) / 20.0
@@ -447,7 +447,7 @@ def demo_7_init () :
                             height = DISPLAY_HEIGHT ,
                             display = demo_canvas)
     display.add_area_type ("sysfont", RemoteSysFont)
-    display.add_area_type ("linearguage", RemoteLinearGuage)
+    display.add_area_type ("lineargauge", RemoteLinearGauge)
     #setup_display (display, demo_id + "_display")
     setup_display (display, DEMO_7_DISPLAY + "_display")
     display.screen_clear ()
