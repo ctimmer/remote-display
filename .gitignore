@@ -1,6 +1,7 @@
 # Byte-compiled / optimized / DLL files
 # My stuff
 .vscode/
+display_modules_test/
 pimoroni/
 screens/
 trash/
