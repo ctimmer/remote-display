@@ -1,6 +1,7 @@
 #
 
 JSON_FILE_NAME = "rem_demo_displays.json"
+JSON_FILE_INDENT = 2 # 1-8 for pretty print / None for minimize
 
 DISPLAY_VPOS = 0
 DISPLAY_VLEN = 240
@@ -1771,7 +1772,8 @@ demo_9_display = {
 
 if __name__ == "__main__" :
     import json
-    print ("rem_demo_displays: Creating JSON display configuration")
+    print ("Building JSON display configuration:" ,
+           JSON_FILE_NAME)
     json_dict = {
         "demo_1_display" : demo_1_display ,
         "demo_2_display" : demo_2_display ,
@@ -1788,6 +1790,6 @@ if __name__ == "__main__" :
                     json_fp ,
                     ensure_ascii = True ,
                     check_circular = True ,
-                    indent = 2)    # pretty print
-                    #indent = None)  # minimize
+                    indent = JSON_FILE_INDENT)
+
 ## end __MAIN__ #

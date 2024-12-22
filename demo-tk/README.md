@@ -1,4 +1,4 @@
-# demo-tk
+# demo-tk - non-micropython remote_display example
 
 ## Description
 
@@ -11,6 +11,9 @@ Each display is independent and can be modified/tested without affecting the oth
 - Additional modules
   - tkinter
   - PIL, if using image display demo
+  - webcolors
+    - python 3.10 or later
+    - There is some commented code in tkinter_display.py to handle pre 3.10 versions
 
 ## Quick Start
 
@@ -52,7 +55,7 @@ The bash script **setup.sh** in the demo-tk directory will set up symbolic links
 
 ```text
 cd demo-tk
-python rem_demo.py
+python3 rem_demo.py
 ```
 
 **Output**
