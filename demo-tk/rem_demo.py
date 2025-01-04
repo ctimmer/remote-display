@@ -66,12 +66,17 @@ DEMO_LIST = {
 #
 DISPLAY_WIDTH = 320
 DISPLAY_HEIGHT = 240
+SCALE_FACTOR = None
+#SCALE_FACTOR = 1.25
+
+if SCALE_FACTOR is not None :
+    DISPLAY_WIDTH = int (DISPLAY_WIDTH * SCALE_FACTOR)
+    DISPLAY_HEIGHT = int (DISPLAY_HEIGHT * SCALE_FACTOR)
 
 print ("tk_display setup")
 tk_display = tkinter.Tk ()
-tk_display.geometry ("{:04d}x{:04d}".format((DISPLAY_WIDTH * 3)  + 35 ,
-                                            (DISPLAY_HEIGHT * 3) + 35))
-#tk_display.tk.call('tk', 'scaling', 2.0)
+#tk_display.geometry ("{:04d}x{:04d}".format((DISPLAY_WIDTH * 3)  + 35 ,
+#                                            (DISPLAY_HEIGHT * 3) + 35))
 tk_display.title ("Remote Display Demonstration")
 tk_display.config(bg = "black") 
 
@@ -110,23 +115,23 @@ def setup_display (display, display_name) :
 #-------------------------------------------------------------------------------
 def demo_1_init () :
     demo_id = "demo_1"
-    demo_canvas = tkinter.Canvas(tk_display ,
+    canvas = tkinter.Canvas(tk_display ,
                                 **{**CANVAS_DEFAULT ,
                                     **{
                                     "bg" : CANVAS_BG
                                     }})
-    demo_canvas.grid (column = 0 ,
+    canvas.grid (column = 0 ,
                         row = 0 ,
                         **GRID_DEFAULT)
 
     if demo_id not in DEMO_LIST :
         return
 
-    DEMO_LIST [demo_id]["canvas"] = demo_canvas
+    DEMO_LIST [demo_id]["canvas"] = canvas
 
     display = RemoteDisplay (width = DISPLAY_WIDTH ,
                             height = DISPLAY_HEIGHT ,
-                            display = demo_canvas)
+                            display = canvas)
     display.add_area_type ("sysfont", RemoteSysFont)
     display.add_font_specs ("courier", font.Font (family = 'Courier' ,
                                                     size = -24 ))
@@ -140,6 +145,8 @@ def demo_1_init () :
                                                 size = -24 ,
                                                 weight = 'bold'))
     setup_display (display, demo_id + "_display")
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
     DEMO_LIST [demo_id]["display"] = display
     return display
 
@@ -150,35 +157,42 @@ def demo_1_loop () :
     if demo_id not in DEMO_LIST :
         return
 
+    return          # No change
+
     display = DEMO_LIST [demo_id]["display"]
+    canvas = DEMO_LIST [demo_id]["canvas"]
 
     display.screen_reload ()
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
 
 ## end demo_1_loop
 
 #-------------------------------------------------------------------------------
 def demo_2_init () :
     demo_id = "demo_2"
-    demo_canvas = tkinter.Canvas(tk_display ,
+    canvas = tkinter.Canvas(tk_display ,
                                 **{**CANVAS_DEFAULT ,
                                     **{
                                     "bg" : CANVAS_BG
                                     }})
-    demo_canvas.grid (column = 1 ,
+    canvas.grid (column = 1 ,
                         row = 0 ,
                         **GRID_DEFAULT)
 
     if demo_id not in DEMO_LIST :
         return
 
-    DEMO_LIST [demo_id]["canvas"] = demo_canvas
+    DEMO_LIST [demo_id]["canvas"] = canvas
 
     display = RemoteDisplay (width = DISPLAY_WIDTH ,
                             height = DISPLAY_HEIGHT ,
-                            display = demo_canvas)
+                            display = canvas)
     display.add_area_type ("sysfont", RemoteSysFont)
     display.add_area_type ("7segment", Remote7Segment)
     setup_display (display, demo_id + "_display")
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
     DEMO_LIST [demo_id]["display"] = display
     return display
 
@@ -189,9 +203,14 @@ def demo_2_loop () :
     if demo_id not in DEMO_LIST :
         return
 
+    return          # No change
+
     display = DEMO_LIST [demo_id]["display"]
+    canvas = DEMO_LIST [demo_id]["canvas"]
 
     display.screen_reload ()
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
 
 ## end demo_2_loop
 
@@ -211,26 +230,28 @@ DEMO_3_COMPASS_POINT_NAMES = (
 
 def demo_3_init () :
     demo_id = "demo_3"
-    demo_canvas = tkinter.Canvas(tk_display ,
+    canvas = tkinter.Canvas(tk_display ,
                                 **{**CANVAS_DEFAULT ,
                                     **{
                                     "bg" : CANVAS_BG
                                     }})
-    demo_canvas.grid (column = 2 ,
+    canvas.grid (column = 2 ,
                         row = 0 ,
                         **GRID_DEFAULT)
 
     if demo_id not in DEMO_LIST :
         return
 
-    DEMO_LIST [demo_id]["canvas"] = demo_canvas
+    DEMO_LIST [demo_id]["canvas"] = canvas
 
     display = RemoteDisplay (width = DISPLAY_WIDTH ,
                             height = DISPLAY_HEIGHT ,
-                            display = demo_canvas)
+                            display = canvas)
     display.add_area_type ("sysfont", RemoteSysFont)
     display.add_area_type ("lamp", RemoteLamp)
     setup_display (display, demo_id + "_display")
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
     DEMO_LIST [demo_id]["display"] = display
     return display
 
@@ -243,6 +264,8 @@ def demo_3_loop () :
         return
 
     display = DEMO_LIST [demo_id]["display"]
+    canvas = DEMO_LIST [demo_id]["canvas"]
+
     direction_list = ("north", "east", "south", "west")
 
     DEMO_3_COUNT += 1
@@ -260,6 +283,8 @@ def demo_3_loop () :
                         lamp_id = "on")
 
     display.screen_reload ()
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
 
 ## end demo_3_loop
 
@@ -270,12 +295,12 @@ DEMO_4_TRIG_VALUES = [None] * DEMO_4_TRIG_LEN
 
 def demo_4_init () :
     demo_id = "demo_4"
-    demo_canvas = tkinter.Canvas(tk_display ,
+    canvas = tkinter.Canvas(tk_display ,
                                 **{**CANVAS_DEFAULT ,
                                     **{
                                     "bg" : CANVAS_BG
                                     }})
-    demo_canvas.grid (column = 0 ,
+    canvas.grid (column = 0 ,
                         row = 1 ,
                         **GRID_DEFAULT)
 
@@ -283,15 +308,17 @@ def demo_4_init () :
         return
 
     import math
-    DEMO_LIST [demo_id]["canvas"] = demo_canvas
+    DEMO_LIST [demo_id]["canvas"] = canvas
 
     display = RemoteDisplay (width = DISPLAY_WIDTH ,
                             height = DISPLAY_HEIGHT ,
-                            display = demo_canvas)
+                            display = canvas)
     display.add_area_type ("sysfont", RemoteSysFont)
     display.add_area_type ("lineargauge", RemoteLinearGauge)
     display.add_area_type ("lineargaugeticks", RemoteLinearGaugeTicks)
     setup_display (display, demo_id + "_display")
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
     trig_in_value = 0.0
     trig_increment = (2.0 * math.pi) / 20.0
     for trig_idx in range (0, DEMO_4_TRIG_LEN) :
@@ -315,6 +342,7 @@ def demo_4_loop () :
         return
 
     display = DEMO_LIST [demo_id]["display"]
+    canvas = DEMO_LIST [demo_id]["canvas"]
 
     ftemp = random.randint (-60, 260) 
     ctemp = int ((5 / 9) * (ftemp - 32))
@@ -345,18 +373,20 @@ def demo_4_loop () :
             trig_idx = 0
 
     display.screen_reload ()
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
 
 ## end demo_4_loop
 
 #-------------------------------------------------------------------------------
 def demo_5_init () :
     demo_id = "demo_5"
-    demo_canvas = tkinter.Canvas(tk_display ,
+    canvas = tkinter.Canvas(tk_display ,
                                 **{**CANVAS_DEFAULT ,
                                     **{
                                     "bg" : CANVAS_BG
                                     }})
-    demo_canvas.grid (column = 1 ,
+    canvas.grid (column = 1 ,
                         row = 1 ,
                         **GRID_DEFAULT)
 
@@ -365,11 +395,11 @@ def demo_5_init () :
 
     from PIL import Image
 
-    DEMO_LIST [demo_id]["canvas"] = demo_canvas
+    DEMO_LIST [demo_id]["canvas"] = canvas
 
     display = RemoteDisplay (width = DISPLAY_WIDTH ,
                             height = DISPLAY_HEIGHT ,
-                            display = demo_canvas)
+                            display = canvas)
     DEMO_LIST [demo_id]["display"] = display
 
     display.add_area_type ("sysfont", RemoteSysFont)
@@ -383,6 +413,8 @@ def demo_5_init () :
     display.add_image_object ("heart", python_image)
 
     setup_display (display, demo_id + "_display")
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
 
     return display
 
@@ -393,36 +425,42 @@ def demo_5_loop () :
     if demo_id not in DEMO_LIST :
         return
 
-    display = DEMO_LIST [demo_id]["display"]
-    demo_canvas = DEMO_LIST [demo_id]["canvas"]
+    return          # No change
 
-    #display.screen_reload ()   # Nothing changes
+    display = DEMO_LIST [demo_id]["display"]
+    canvas = DEMO_LIST [demo_id]["canvas"]
+
+    display.screen_reload ()   # Nothing changes
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
 
 ## end demo_5_loop
 
 #-------------------------------------------------------------------------------
 def demo_6_init () :
     demo_id = "demo_6"
-    demo_canvas = tkinter.Canvas(tk_display ,
+    canvas = tkinter.Canvas(tk_display ,
                                 **{**CANVAS_DEFAULT ,
                                     **{
                                     "bg" : CANVAS_BG
                                     }})
-    demo_canvas.grid (column = 2 ,
+    canvas.grid (column = 2 ,
                         row = 1 ,
                         **GRID_DEFAULT)
 
     if demo_id not in DEMO_LIST :
         return
 
-    DEMO_LIST [demo_id]["canvas"] = demo_canvas
+    DEMO_LIST [demo_id]["canvas"] = canvas
 
     display = RemoteDisplay (width = DISPLAY_WIDTH ,
                             height = DISPLAY_HEIGHT ,
-                            display = demo_canvas)
+                            display = canvas)
     display.add_area_type ("sysfont", RemoteSysFont)
     display.add_area_type ("datetime", RemoteDateTime)
     setup_display (display, demo_id + "_display")
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
     DEMO_LIST [demo_id]["display"] = display
     return display
 
@@ -434,6 +472,7 @@ def demo_6_loop () :
         return
 
     display = DEMO_LIST [demo_id]["display"]
+    canvas = DEMO_LIST [demo_id]["canvas"]
 
     display.update_area (area = "date_1")
     display.update_area (area = "date_2")
@@ -446,6 +485,8 @@ def demo_6_loop () :
     #display.update_area (area = "date_9")
 
     display.screen_reload ()
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
 
 ## end demo_6_loop
 
@@ -454,29 +495,31 @@ DEMO_7_DISPLAY = "demo_4"
 #-------------------------------------------------------------------------------
 def demo_7_init () :
     demo_id = "demo_7"
-    demo_canvas = tkinter.Canvas(tk_display ,
+    canvas = tkinter.Canvas(tk_display ,
                                 **{**CANVAS_DEFAULT ,
                                     **{
                                     "bg" : CANVAS_BG
                                     }})
-    demo_canvas.grid (column = 0 ,
+    canvas.grid (column = 0 ,
                         row = 2 ,
                         **GRID_DEFAULT)
 
     if demo_id not in DEMO_LIST :
         return
 
-    DEMO_LIST [demo_id]["canvas"] = demo_canvas
+    DEMO_LIST [demo_id]["canvas"] = canvas
 
     display = RemoteDisplay (width = DISPLAY_WIDTH ,
                             height = DISPLAY_HEIGHT ,
-                            display = demo_canvas)
+                            display = canvas)
     display.add_area_type ("sysfont", RemoteSysFont)
     display.add_area_type ("lineargauge", RemoteLinearGauge)
     #setup_display (display, demo_id + "_display")
     setup_display (display, DEMO_7_DISPLAY + "_display")
     display.screen_clear ()
     display.show_area ()
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
     DEMO_LIST [demo_id]["display"] = display
     return display
 
@@ -487,9 +530,14 @@ def demo_7_loop () :
     if demo_id not in DEMO_LIST :
         return
 
-    display = DEMO_LIST [demo_id]["display"]
+    return          # No changes
 
-    #display.screen_reload ()
+    display = DEMO_LIST [demo_id]["display"]
+    canvas = DEMO_LIST [demo_id]["canvas"]
+
+    display.screen_reload ()
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
 
 ## end demo_7_loop
 
@@ -498,12 +546,12 @@ DEMO_8_DISPLAY = "demo_5"
 #-------------------------------------------------------------------------------
 def demo_8_init () :
     demo_id = "demo_8"
-    demo_canvas = tkinter.Canvas(tk_display ,
+    canvas = tkinter.Canvas(tk_display ,
                                 **{**CANVAS_DEFAULT ,
                                     **{
                                     "bg" : CANVAS_BG
                                     }})
-    demo_canvas.grid (column = 1 ,
+    canvas.grid (column = 1 ,
                         row = 2 ,
                         **GRID_DEFAULT)
 
@@ -512,11 +560,11 @@ def demo_8_init () :
 
     from PIL import Image
 
-    DEMO_LIST [demo_id]["canvas"] = demo_canvas
+    DEMO_LIST [demo_id]["canvas"] = canvas
 
     display = RemoteDisplay (width = DISPLAY_WIDTH ,
                             height = DISPLAY_HEIGHT ,
-                            display = demo_canvas)
+                            display = canvas)
     display.add_area_type ("sysfont", RemoteSysFont)
 
     display.add_area_type ("image", RemoteImage)
@@ -531,6 +579,8 @@ def demo_8_init () :
     setup_display (display, DEMO_8_DISPLAY + "_display")
     display.screen_clear ()
     display.show_area ()
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
     DEMO_LIST [demo_id]["display"] = display
     return display
 
@@ -541,9 +591,14 @@ def demo_8_loop () :
     if demo_id not in DEMO_LIST :
         return
 
-    display = DEMO_LIST [demo_id]["display"]
+    return          # No changes
 
-    #display.screen_reload ()
+    display = DEMO_LIST [demo_id]["display"]
+    canvas = DEMO_LIST [demo_id]["canvas"]
+
+    display.screen_reload ()
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
 
 ## end demo_8_loop
 
@@ -553,23 +608,23 @@ DEMO_9_DISPLAY = "demo_6"
 
 def demo_9_init () :
     demo_id = "demo_9"
-    demo_canvas = tkinter.Canvas(tk_display ,
+    canvas = tkinter.Canvas(tk_display ,
                                 **{**CANVAS_DEFAULT ,
                                     **{
                                     "bg" : CANVAS_BG
                                     }})
-    demo_canvas.grid (column = 2 ,
+    canvas.grid (column = 2 ,
                         row = 2 ,
                         **GRID_DEFAULT)
 
     if demo_id not in DEMO_LIST :
         return
 
-    DEMO_LIST [demo_id]["canvas"] = demo_canvas
+    DEMO_LIST [demo_id]["canvas"] = canvas
 
     display = RemoteDisplay (width = DISPLAY_WIDTH ,
                             height = DISPLAY_HEIGHT ,
-                            display = demo_canvas)
+                            display = canvas)
     #display.add_area_type ("sysfont", RemoteSysFont)
     display.add_area_type ("sysfont", RemoteSysFont)
     display.add_area_type ("7segment", Remote7Segment)
@@ -581,6 +636,8 @@ def demo_9_init () :
     DEMO_LIST [demo_id]["display"] = display
     display.screen_clear ()
     display.show_area ()
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
     return display
 
 ## end demo_9_init
@@ -590,9 +647,13 @@ def demo_9_loop () :
     if demo_id not in DEMO_LIST :
         return
 
+    return          # No changes
+
     display = DEMO_LIST [demo_id]["display"]
     canvas = DEMO_LIST [demo_id]["canvas"]
-    #display.screen_reload ()
+    display.screen_reload ()
+    if SCALE_FACTOR is not None :
+        canvas.scale ("all", 0, 0, SCALE_FACTOR, SCALE_FACTOR)
 
 ## end demo_9_loop
 
