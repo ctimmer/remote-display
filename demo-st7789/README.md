@@ -59,13 +59,13 @@ Run rem_demo.py on the device
 
 **Output**
 
-A window should be opened that looks similar to this:
+The device should display similar to this:
 
 ![display](images/demo.jpg)
 
 Text output (unless there are problems):
 
 ```
-Local directory . is mounted at /remote
+Local directory . is mounted at /remote   # if using mpremote
 End of Demonstration
 ```
