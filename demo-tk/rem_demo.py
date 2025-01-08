@@ -31,10 +31,19 @@ import tkinter
 from tkinter import font
 #from PIL import Image     # Used by demo_5
 
+## USE_MODULE_DEMO_DISPLAYS - displays configured from modules or JSON file
+# To use JSON file configuration:
+#   run 'python rem_demo_displays.py' to create:
+#     rem_demo_displays.json
+#   set USE_MODULE_DEMO_DISPLAYS = False
+# There should not be any change in the test output
 USE_MODULE_DEMO_DISPLAYS = True
 json_displays = None       # Used when USE_MODULE_DEMO_DISPLAYS is False
 
+## RemoteDisplay - Base class
 from display_modules.remote_display import RemoteDisplay
+
+## Subclasses
 from area_modules.remote_sysfont import RemoteSysFont
 from area_modules.remote_image import RemoteImage
 from area_modules.remote_lamp import RemoteLamp
