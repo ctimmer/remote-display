@@ -79,6 +79,10 @@ display.update_area (area_id = "text_output" ,
 
 time.sleep (2)
 display.update_area (area_id = "text_output" ,
+                     text = "for all good people")
+
+time.sleep (2)
+display.update_area (area_id = "text_output" ,
                      text = "to come to the aid")
 
 time.sleep (2)
@@ -89,3 +93,4 @@ time.sleep (2)
 display.update_area (area_id = "text_end" ,
                      text = "End of Demonstration")
 
+print ("End of Demonstration")
