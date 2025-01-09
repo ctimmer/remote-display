@@ -10,7 +10,13 @@ This demo runs text screen on a display with an st7789 driver using the SPI inte
   - st7789 driver
   - 240 width x 320 height
 
-This demo was developed on a Pimoroni Pico Display Pack 2.8" with a Raspberry PI Pico 2 W. The standard micropython firmware was used instead of Pimoroni's version for compatibility.
+This demo was developed on a Pimoroni Pico Display Pack 2.8" with the standard micropython firmware was used instead of Pimoroni's version for compatibility.
+
+- Raspberry Pico
+  - Raspberry PI Pico 2 W.
+    - MicroPython v1.25.0-preview.180.g495ce91ca on 2025-01-06; Raspberry Pi Pico 2 W with RP2350
+  - Raspberry PI Pico W.
+    - MicroPython v1.24.1 on 2024-11-29; Raspberry Pi Pico W with RP2040
 
 ## Quick Start
 
@@ -41,7 +47,7 @@ The entire area_modules directory can be copied.
 
 **Scripting**
 
-The bash script **setup.sh** in the demo-tk directory will set up symbolic links to modules. Edit the script setting **GETHUB_DIR** to the repository directory (see example in script).
+The bash script **setup.sh** in the demo-st7789 directory will set up symbolic links to modules. Edit the script setting **GETHUB_DIR** to the repository directory (see example in script).
 
 **Running demo-st7789**
 
