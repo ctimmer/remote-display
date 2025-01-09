@@ -55,7 +55,7 @@ done
 
 ########## comm_modules ###########################
 directory="comm_modules"
-echo "COMM: Not needed for demo-tk"
+echo "COMM: Not needed for ${DEMO_DIR}"
 
 # That's All Folks
 
