@@ -35,7 +35,7 @@ cd remote-display
 - trace_display.py
 - dummy_display.py
 
-**Copy the following area modules files from area_modules/ to demo_tk/area_modules/**
+**Copy the following area modules files from area_modules/ to demo_st7789/area_modules/**
 
 - remote_area.py
 - remote_7segment.py
