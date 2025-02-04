@@ -35,9 +35,10 @@ from display_modules.remote_display import RemoteDisplay
 from area_modules.remote_sysfont import RemoteSysFont
 from area_modules.remote_7segment import Remote7Segment
 
-import display_screen
+import display_screen               # display configuration
 
-FREQ = const (240000000)           # 300000000 doesn't work
+FREQ = const (240000000)           # 300000000 doesn't work (Pico 2)
+#FREQ = const (0)                  # No freq change
 
 SPI_ID = const (0)
 BAUDRATE = const (40000000)
@@ -89,7 +90,7 @@ def text_split (text_in, max_len = 30) :
     if len (text_line) > 0 :
         text_return.append (text_line)
     #print (text_return)
-    return text_return
+    return text_return          # return array of text lines
 
 #-------------------------------------------------------------------------------
 # main
