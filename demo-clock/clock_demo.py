@@ -25,6 +25,7 @@
 #
 
 import sys
+import gc
 #import os
 from machine import Pin, SPI
 import time
@@ -48,8 +49,9 @@ import clock_screens
 
 from PimDisplayPack28 import PimoroniGPIO
 from open_weather import OpenWeather
+from text_scroller import TextScroller
 
-FREQ = const (240000000)           # 300000000 doesn't work
+FREQ = const (240000000)           # Pico 2 W, 300000000 doesn't work
 
 SPI_ID = const (0)
 BAUDRATE = const (40000000)
@@ -64,91 +66,51 @@ HEIGHT = const (320)
 WIDTH = const (240)
 ROTATION = const (3)    # landscape 1 or 3
 
-#-------------------------------------------------------------------------------
-## text_split - split text into lines with length <= max_len at word boundries
-def text_split (text_in,
-                max_len = 30) :
-    new_lines = []
-    tokens = []
-    for token in text_in.split () :
-        while len (token) > max_len :
-            # split tokens with length > max_len
-            tokens.append (token [0:max_len])
-            token = token [max_len:]
-        tokens.append (token)
-    ## build lines from tokens
-    curr_line = ""
-    for token in tokens :
-        if len (curr_line) + len (token) + 1 > max_len :
-            if len (curr_line) > 0 :
-                new_lines.append (curr_line)
-            curr_line = token
-        else :
-            if len (curr_line) > 0 :
-                curr_line += " "
-            curr_line += token
-    if len (curr_line) > 0 :
-        new_lines.append (curr_line)
-    return new_lines
+class DisplayIO () :
+    def __init__ (self ,
+                  display) :
+        self.display = display
+        self.running = True
+        ## page data
+        self.page_ids = None
+        self.current_page_idx = None
+        self.current_page_idx_max = None
+        self.set_page_ids ()
+        ## button IO
+        self.pimoroni_input = PimoroniGPIO ()
+        self.pimoroni_input.set_alias ("HOME", "A")
+        self.pimoroni_input.set_alias ("SHUT_DOWN", "B")
+        self.pimoroni_input.set_alias ("NEXT_PAGE", "Y")
+        self.pimoroni_input.set_alias ("PREVIOUS_PAGE", "X")
 
-class TextScroller :
-    def __init__ (self, **kwargs) :
-        self.display = kwargs ["display"]
-        self.line_area_ids = kwargs ["line_area_ids"]
-        self.line_len_max = 30
-        if "line_len_max" in kwargs :
-            self.line_len_max = kwargs ["line_len_max"]
-        self.text_queue = UpdateQueue (size = 25)
-        self.text_lines = []
-        for area_id in self.line_area_ids :
-            self.text_lines.append ("")    # initialize blank scroll lines
+    def set_page_ids (self) :
+        self.page_ids = display.get_page_ids ()
+        self.current_page_idx = 0
+        self.current_page_idx_max = len (self.page_ids) - 1
 
-    def add_queue_message (self, message) :
-        self.text_queue.push_queue (message)
-    def process_queue_message (self) :
-        if not self.text_queue.empty_queue () :
-            self.add_message (self.text_queue.pop_queue ())
-    def process_queue_all (self) :
-        while not self.text_queue.empty_queue () :
-            self.add_message (self.text_queue.pop_queue ())
-    def add_message (self,
-                     message = None ,
-                     clear = False ,
-                     scroll_to_top = False) :
-        if clear :
-            for line_idx in range (0, len (self.text_lines)) :
-                self.text_lines [line_idx] = ""
-        if message is not None :
-            new_lines = text_split (message, self.line_len_max)
-            new_lines_len = len (new_lines)
-            if new_lines_len <= 0 :
-                new_lines.append ("")        # Add blank line
-                new_lines_len = 1
-            if new_lines_len > len (self.text_lines) :
-                new_lines = new_lines [new_lines_len - len (self.text_lines)::]
-            for text_lines_idx in range (0, (len (self.text_lines) - new_lines_len)) :
-                self.text_lines [text_lines_idx] = self.text_lines [text_lines_idx + new_lines_len]
-            text_lines_idx = len (self.text_lines) - new_lines_len
-            for text_idx in range (0, new_lines_len) :
-                self.text_lines [text_lines_idx] = new_lines [text_idx]
-                text_lines_idx += 1
-            #print ("new:", self.text_lines)
-        if scroll_to_top :
-            line_idx = None
-            for line_idx in range (0, len (self.text_lines)) :
-                if self.text_lines [line_idx] != "" :
-                    break
-            for scroll_idx in range (0, (len (self.text_lines) - line_idx)) :
-                self.text_lines [scroll_idx] = self.text_lines [(scroll_idx + line_idx)]
-            for line_idx in range ((scroll_idx + 1), len (self.text_lines)) :
-                self.text_lines [line_idx] = ""
-        self.update_scroll_lines ()
+    def read_buttons (self) :
+        pim_buttons = self.pimoroni_input.read_buttons (("HOME", "SHUT_DOWN", "NEXT_PAGE", "PREVIOUS_PAGE"))
+        if pim_buttons ["SHUT_DOWN"] :
+            self.running = False
+            return
+        if pim_buttons ["HOME"] :
+            self.current_page_idx = 0
+            self.display.change_active_page_index (self.current_page_idx)
+        elif pim_buttons ["NEXT_PAGE"] :
+            self.current_page_idx += 1
+            if self.current_page_idx > self.current_page_idx_max :
+                self.current_page_idx = 0
+            self.display.change_active_page_index (self.current_page_idx)
+        elif pim_buttons ["PREVIOUS_PAGE"] :
+            self.current_page_idx -= 1
+            if self.current_page_idx < 0 :
+                self.current_page_idx = self.current_page_idx_max
+            self.display.change_active_page_index (self.current_page_idx)
 
-    def update_scroll_lines (self) :
-        #print ("update_scroll_lines:", self.text_lines)
-        for text_idx, text_area_id in enumerate (self.line_area_ids) :
-            self.display.update_area (area_id = text_area_id ,
-                                      text = self.text_lines [text_idx])
+    def is_running (self) :
+        return self.running
+
+## end DisplayIO ##
 
 def about_screen_setup () :
     import os
@@ -227,27 +189,29 @@ current_page_idx_max = 3
 #sys.exit ()
 open_weather = OpenWeather (display,
                             latitude = 61.54175 ,           # Big Lake
-                              longitude = -149.83036 ,
-                              appid = local_settings.OPEN_WEATHER_APPID)
+                            longitude = -149.83036 ,
+                            appid = local_settings.OPEN_WEATHER_APPID)
 #open_weather = OpenWeather (latitude = 39.099724 ,          # KC
-#                              longitude = -94.578331 ,
-#                              appid = local_settings.OPEN_WEATHER_APPID)
+#                            longitude = -94.578331 ,
+#                            appid = local_settings.OPEN_WEATHER_APPID)
 #open_weather = OpenWeather (latitude = 37.69224000 ,          # Wichita
-#                              longitude = -97.33754000 ,
-#                              appid = local_settings.OPEN_WEATHER_APPID)
+#                            longitude = -97.33754000 ,
+#                            appid = local_settings.OPEN_WEATHER_APPID)
 #open_weather = OpenWeather (latitude = 34.05223000 ,          # LA
-#                              longitude = -118.24368000 ,
-#                              appid = local_settings.OPEN_WEATHER_APPID)
+#                            longitude = -118.24368000 ,
+#                            appid = local_settings.OPEN_WEATHER_APPID)
 #print (open_weather.get_current_weather ())
 #sys.exit ()
 udp_input = UpdateUDPServer ()
 udp_input.open_udp_port ()
 udp_input.read_udp_port ()
 
-pimoroni_input = PimoroniGPIO ()
-pimoroni_input.set_alias ("HOME", "A")
-pimoroni_input.set_alias ("NEXT_PAGE", "Y")
-pimoroni_input.set_alias ("PREVIOUS_PAGE", "X")
+#pimoroni_input = PimoroniGPIO ()
+#pimoroni_input.set_alias ("HOME", "A")
+#pimoroni_input.set_alias ("NEXT_PAGE", "Y")
+#pimoroni_input.set_alias ("PREVIOUS_PAGE", "X")
+
+display_io = DisplayIO (display)
 
 message_scroller = TextScroller (display = display ,
                                    line_len_max = 25 ,
@@ -255,72 +219,26 @@ message_scroller = TextScroller (display = display ,
 
 about_screen_setup ()
 
-#open_weather.update ()
 display.update_area (area_id = "status", text = "Starting...")
-#display.change_active_page_id ("weather")
-#display.change_active_page_id ("messages")
-#message_scroller.add_message ("1234567890123456789012345678901234567890")
-#sys.exit ()
-for idx in range (0, 20000) :
+idx = 0
+while display_io.is_running () :
     display.update_area (area_id = "c_time")
+    #display_io.read_buttons ()
     udp_input.read_udp_port ()
     while True :
         udp_message = udp_input.get_udp_message ()
         if udp_message is None :
             break
         print ("Proceessing:", udp_message)
-    if idx % 1800 == 0 :
+    if idx % 3600 == 0 :
         print ("w upd", idx)
         open_weather.update ()
     if idx % 20 == 0 :
         message_scroller.add_message ("The value of the interation index: idx =" + str (idx))
         display.update_area (area_id = clock_screens.MESSAGE_CONFIG["update_area_id"])
-    pim_buttons = pimoroni_input.read_buttons (("HOME", "NEXT_PAGE", "PREVIOUS_PAGE", "B"))
-    if pim_buttons ["HOME"] :
-        current_page_idx = 0
-        display.change_active_page_index (current_page_idx)
-    elif pim_buttons ["NEXT_PAGE"] :
-        current_page_idx += 1
-        if current_page_idx > current_page_idx_max :
-            current_page_idx = 0
-        display.change_active_page_index (current_page_idx)
-    elif pim_buttons ["PREVIOUS_PAGE"] :
-        current_page_idx -= 1
-        if current_page_idx < 0 :
-            current_page_idx = current_page_idx_max
-        display.change_active_page_index (current_page_idx)
-    time.sleep (0.5)
+    #
+    idx += 1
+    time.sleep (0.25)
+    display_io.read_buttons ()
 
 display.update_area (area_id = "status", text = "That's All Folks")
-
-'''
-## Scrolling text
-os_info = os.uname ()
-os_text = ["OS INFORMATION"]
-
-MAX_TEXT_LEN = 25
-os_text += text_split ("SYSNAME: " + os_info.sysname, max_len = MAX_TEXT_LEN)
-os_text += text_split ("RELEASE: " + os_info.release, max_len = MAX_TEXT_LEN)
-os_text += text_split ("VERSION: " + os_info.version, max_len = MAX_TEXT_LEN)
-os_text += text_split ("MACHINE: " + os_info.machine, max_len = MAX_TEXT_LEN)
-#print (os_text)
-
-scroll_area_ids = display_screen.SCROLL_AREA_IDS
-scroll_text = display_screen.scroll_text
-for os_text_idx in range (0, len (os_text)) :
-    scroll_idx = 1
-    for scroll_idx in range (scroll_idx, len (scroll_text)) :
-        scroll_text [scroll_idx - 1] = scroll_text [scroll_idx]
-    scroll_text [scroll_idx] = os_text [os_text_idx]
-    scroll_idx = 0
-    for area_id in scroll_area_ids :
-        display.update_area (area_id = area_id, text = scroll_text [scroll_idx])
-        scroll_idx += 1
-    time.sleep (2.0)
-
-#time.sleep (2)
-display.update_area (area_id = "text_output" ,
-                     text = "End of Demonstration")
-
-print ("End of Demonstration")
-'''

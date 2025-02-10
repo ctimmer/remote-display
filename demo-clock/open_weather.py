@@ -8,13 +8,13 @@ class OpenWeather :
                   display ,
                   latitude ,
                   longitude ,
-                  token = None) :
+                  appid = None) :
         #import requests
-        #print ("__init__", latitude, longitude, token)
+        #print ("__init__", latitude, longitude, appid)
         self.display = display
         self.latitude = latitude
         self.longitude = longitude
-        self.token = token
+        self.appid = appid
         self.current_weather = None
         self.current_weather_description = None
         self.forcast_min_idx = 1
@@ -32,15 +32,18 @@ class OpenWeather :
     def access_weather_data (self) :
         url = self.http_request.format (lat = self.latitude ,
                                         lon = self.longitude ,
-                                        appid = self.token
+                                        appid = self.appid
                                         )
-        #print ("URL:", url)
-        try :
-            self.current_weather = requests.get (url = url).json ()
+        print ("URL:", url)
+        #try :
+        if True :
+            ret = self.current_weather = requests.get (url = url)
+            print (ret.text)
+            self.current_weather = ret.json ()
             if self.utc_offset != self.current_weather ["timezone_offset"] :
                 self.utc_offset = self.current_weather ["timezone_offset"]
-        except :
-            print ("OpenWeather: access failed")
+        #except :
+        #    print ("OpenWeather: access failed")
 
     def get_current_weather (self) :
         if True :

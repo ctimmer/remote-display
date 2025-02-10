@@ -6,9 +6,11 @@ pimoroni/
 screens/
 trash/
 *.swp
-demo-tk/rem_demo_displays.json
-demo-tk/display_modules/*.py
-demo-tk/area_modules/*.py
+demo-*/*.json
+demo-*/display_modules/*.py
+demo-*/area_modules/*.py
+demo-*/comm_modules/*.py
+demo-*/local_settings.py
 doxygen/
 
 __pycache__/

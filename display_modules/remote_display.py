@@ -263,7 +263,7 @@ class RemoteDisplay (DEVICE_DISPLAY) :
     def get_page_array (self) :
         return self.page_by_index
     def get_page_ids (self) :
-        return self.page_by_name.keys ()
+        return list (self.page_by_name)
 
     def get_child_list (self, parent_id) :
         if parent_id not in self.areas :
