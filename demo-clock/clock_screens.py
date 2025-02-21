@@ -601,7 +601,7 @@ if __name__ == "__main__" :
         "WEATHER_SCREEN" : WEATHER_SCREEN ,
         "MESSAGE_SCREEN" : MESSAGE_SCREEN ,
         "MESSAGE_CONFIG" : MESSAGE_CONFIG ,
-        "ABOuT_SCREEN" : ABOUT_SCREEN ,
+        "ABOUT_SCREEN" : ABOUT_SCREEN ,
         "ABOUT_CONFIG" : ABOUT_CONFIG
         }
     with open (JSON_FILE_NAME, "w") as json_fp :

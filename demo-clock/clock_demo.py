@@ -45,7 +45,30 @@ from area_modules.remote_7segment import Remote7Segment
 from area_modules.remote_datetime import RemoteDateTime
 from comm_modules.update_queue import UpdateQueue
 from comm_modules.update_udpserver import UpdateUDPServer
-import clock_screens
+
+#clock_screens = None
+
+USE_MOD_SCREENS = True
+if USE_MOD_SCREENS :
+    print ("importing clock_screens module")
+    import clock_screens
+else :
+    ## Make the jsom input look like a module
+    print ("importing clock_screens json file")
+    JSON_FILE_NAME = "clock_screens.json"
+    with open (JSON_FILE_NAME) as json_fp :
+        clock_screens_dict = json.load (json_fp)
+    class screens () :
+        def __init__ (self) :
+            self.CLOCK_SCREEN = clock_screens_dict ["CLOCK_SCREEN"]
+            self.WEATHER_SCREEN = clock_screens_dict ["WEATHER_SCREEN"]
+            self.MESSAGE_SCREEN = clock_screens_dict ["MESSAGE_SCREEN"]
+            self.MESSAGE_CONFIG = clock_screens_dict ["MESSAGE_CONFIG"]
+            self.ABOUT_SCREEN = clock_screens_dict ["ABOUT_SCREEN"]
+            self.ABOUT_CONFIG = clock_screens_dict ["ABOUT_CONFIG"]
+    #
+    clock_screens_dict = None
+    clock_screens = screens ()
 
 from PimDisplayPack28 import PimoroniGPIO
 from open_weather import OpenWeather
@@ -118,6 +141,16 @@ def about_screen_setup () :
     about_scroller = TextScroller (display = display ,
                                     line_len_max = 50 ,
                                     line_area_ids = clock_screens.ABOUT_CONFIG["line_area_ids"])
+    ''' display sysfont chars from chr(128) to chr(254)
+    int_val = 128
+    for count in range (0, 4) :
+        str_val = ""
+        for int_val in range (int_val, min (int_val + 32, 254)) :
+            str_val += chr (int_val)
+        about_scroller.add_message (str_val)
+        int_val += 1
+    return
+    '''
 
     os_info = os.uname ()
     about_scroller.add_message ("Copyright (c) 2025 Curt Timmerman")
@@ -181,35 +214,47 @@ display.setup_config_dict (clock_screens.CLOCK_SCREEN)
 display.setup_config_dict (clock_screens.WEATHER_SCREEN)
 display.setup_config_dict (clock_screens.MESSAGE_SCREEN)
 display.setup_config_dict (clock_screens.ABOUT_SCREEN)
-current_page_idx = 0
-current_page_idx_max = 3
 
 #display.screen_clear ()
 #display.show_area ()
 #sys.exit ()
-open_weather = OpenWeather (display,
-                            latitude = 61.54175 ,           # Big Lake
-                            longitude = -149.83036 ,
+LATLONG = {
+    "Anchorage" : {
+        "LATITUDE" : 61.217381 ,
+        "LONGITUDE" : -149.863129
+        } ,
+    "KansasCity" : {
+        "LATITUDE" : 39.099724 ,
+        "LONGITUDE" : -94.578331
+        } ,
+    "Wichita" : {
+        "LATITUDE" : 37.69224000 ,
+        "LONGITUDE" : -97.33754000
+        } ,
+    "LosAngeles" : {
+        "LATITUDE" : 34.05223000 ,
+        "LONGITUDE" : -118.24368000
+        }
+    }
+LATLONGLOC = "BigLake"
+#LATLONGLOC = "Wichita"         # Override default
+LATITUDE = 61.54175             # Big Lake, default
+LONGITUDE = -149.83036
+if LATLONGLOC in LATLONG :
+    LATITUDE = LATLONG [LATLONGLOC]["LATITUDE"]
+    LONGITUDE = LATLONG [LATLONGLOC]["LONGITUDE"]
+
+print ("Weather location:", LATLONGLOC)
+open_weather = OpenWeather (display ,
+                            latitude = LATITUDE ,
+                            longitude = LONGITUDE ,
                             appid = local_settings.OPEN_WEATHER_APPID)
-#open_weather = OpenWeather (latitude = 39.099724 ,          # KC
-#                            longitude = -94.578331 ,
-#                            appid = local_settings.OPEN_WEATHER_APPID)
-#open_weather = OpenWeather (latitude = 37.69224000 ,          # Wichita
-#                            longitude = -97.33754000 ,
-#                            appid = local_settings.OPEN_WEATHER_APPID)
-#open_weather = OpenWeather (latitude = 34.05223000 ,          # LA
-#                            longitude = -118.24368000 ,
-#                            appid = local_settings.OPEN_WEATHER_APPID)
+
 #print (open_weather.get_current_weather ())
 #sys.exit ()
 udp_input = UpdateUDPServer ()
 udp_input.open_udp_port ()
-udp_input.read_udp_port ()
-
-#pimoroni_input = PimoroniGPIO ()
-#pimoroni_input.set_alias ("HOME", "A")
-#pimoroni_input.set_alias ("NEXT_PAGE", "Y")
-#pimoroni_input.set_alias ("PREVIOUS_PAGE", "X")
+#udp_input.read_udp_port ()
 
 display_io = DisplayIO (display)
 
@@ -219,26 +264,29 @@ message_scroller = TextScroller (display = display ,
 
 about_screen_setup ()
 
+weather_update_ms = time.ticks_ms ()
+scroll_update_ms = time.ticks_ms ()
 display.update_area (area_id = "status", text = "Starting...")
-idx = 0
+#idx = 0
 while display_io.is_running () :
     display.update_area (area_id = "c_time")
-    #display_io.read_buttons ()
     udp_input.read_udp_port ()
     while True :
         udp_message = udp_input.get_udp_message ()
         if udp_message is None :
             break
         print ("Proceessing:", udp_message)
-    if idx % 3600 == 0 :
-        print ("w upd", idx)
+    current_ms = time.ticks_ms ()
+    if time.ticks_diff (current_ms, weather_update_ms) >= 0 :
+        print ("Weather Update")
         open_weather.update ()
-    if idx % 20 == 0 :
-        message_scroller.add_message ("The value of the interation index: idx =" + str (idx))
-        display.update_area (area_id = clock_screens.MESSAGE_CONFIG["update_area_id"])
+        weather_update_ms = time.ticks_add (current_ms, 900000)
+    if time.ticks_diff (current_ms, scroll_update_ms) >= 0 :
+        message_scroller.add_message ("The value of the interation ms =" + str (current_ms))
+        display.update_area (area_id = clock_screens.MESSAGE_CONFIG ["update_area_id"])
+        scroll_update_ms = time.ticks_add (current_ms, 360000)
     #
-    idx += 1
-    time.sleep (0.25)
+    time.sleep_ms (100)
     display_io.read_buttons ()
 
 display.update_area (area_id = "status", text = "That's All Folks")

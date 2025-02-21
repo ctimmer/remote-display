@@ -53,9 +53,19 @@ The bash script **setup.sh** in the demo-tk directory will set up symbolic links
 
 **Running demo-tk**
 
+Running the demo on linux (Raspberry Pi).
 ```text
 cd demo-tk
-python3 rem_demo.py
+
+python3 -m venv venv        # Create virtual environment
+source venv/bin/activate    # activate virtual environment
+pip3 install webcolors
+pip3 install pillow
+
+python3 rem_demo.py         # run demo
+
+deactivate                  # back to command line
+rm -r venv                  # remove if you are done with the demo
 ```
 
 **Output**
